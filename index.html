@@ -456,7 +456,13 @@ const FIREBASE_CONFIG = {
 };
 const ADMIN_EMAIL  = 'q55531996@gmail.com';
 const WORKER_URL   = 'https://steep-rain-e16f.i3892432848.workers.dev/';
-const DB_ROOT      = 'qatar_review';   // separate from Kangaroo data
+// Firebase rules only allow writes to 'students/' — we prefix 'qr8_' to separate from Kangaroo
+const DB_ROOT      = 'students';
+const QR_NS        = 'qr8_';   // namespace prefix for Qatar Review Grade 8
+// Helpers
+const sRef  = u  => db.ref(`${DB_ROOT}/${QR_NS}${u}`);    // single student
+const sPath = u  => `${DB_ROOT}/${QR_NS}${u}`;
+const allRef = () => db.ref(DB_ROOT);
 
 // أسئلة التقييم القبلي/البعدي (10 أسئلة اختيار من متعدد)
 const ASSESSMENT_IDS = [
@@ -535,7 +541,7 @@ async function attemptLogin(){
 
     err.innerText='جاري التحقق...'; err.style.display='block';
     await auth.signInAnonymously().catch(()=>{});
-    db.ref(`${DB_ROOT}/students/${user}`).once('value').then(async snap=>{
+    sRef(user).once('value').then(async snap=>{
         if(!snap.exists()){ err.innerText='المستخدم غير مسجل في النظام'; return; }
         const data=snap.val();
         const hash=await sha256(pass);
@@ -558,7 +564,7 @@ async function attemptLogin(){
 // ═══════════════════════════════════════════════════════════════
 function refreshHomeUI(){
     if(!CURRENT_USER) return;
-    db.ref(`${DB_ROOT}/students/${CURRENT_USER}`).once('value').then(snap=>{
+    sRef(CURRENT_USER).once('value').then(snap=>{
         if(!snap.exists()) return;
         const d=snap.val();
         const pre=d.preTest||null;
@@ -815,7 +821,7 @@ function endSession(){
         // Save to Firebase
         if(CURRENT_USER){
             const key=mode==='pre'?'preTest':'postTest';
-            db.ref(`${DB_ROOT}/students/${CURRENT_USER}/${key}`).set({
+            sRef(CURRENT_USER).child(key).set({
                 score, total:10,
                 date:new Date().toLocaleDateString('ar-QA'),
                 answers:STATE.answers,
@@ -833,7 +839,7 @@ function endSession(){
 // ═══════════════════════════════════════════════════════════════
 function savePracticeAnswer(q,isCorrect){
     if(!CURRENT_USER||STATE.mode!=='practice') return;
-    const ref=db.ref(`${DB_ROOT}/students/${CURRENT_USER}/practice`);
+    const ref=sRef(CURRENT_USER).child('practice');
     ref.once('value').then(snap=>{
         const d=snap.val()||{totalSolved:0,correctAnswers:0,solvedIds:[]};
         const ids=d.solvedIds||[];
@@ -937,11 +943,14 @@ function switchTab(tabId){
 }
 
 function loadResultsData(){
-    db.ref(`${DB_ROOT}/students`).on('value',snap=>{
+    allRef().on('value',snap=>{
         const tbody=document.getElementById('results-tbody');
         tbody.innerHTML='';
         if(!snap.exists()){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>'; return; }
+        let hasQR=false;
         snap.forEach(child=>{
+            if(!child.key.startsWith(QR_NS)) return;  // skip Kangaroo students
+            hasQR=true;
             const d=child.val();
             const pre=d.preTest||null;
             const post=d.postTest||null;
@@ -970,32 +979,38 @@ function loadResultsData(){
                 <td>${escapeHTML(pracStr)}</td>
             </tr>`;
         });
+        if(!hasQR) tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>';
     });
 }
 
 function loadStudentsData(){
-    db.ref(`${DB_ROOT}/students`).on('value',snap=>{
+    allRef().on('value',snap=>{
         const tbody=document.getElementById('students-tbody');
         tbody.innerHTML='';
         if(!snap.exists()){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>'; return; }
+        let hasQR=false;
         snap.forEach(child=>{
+            if(!child.key.startsWith(QR_NS)) return;  // skip Kangaroo students
+            hasQR=true;
             const d=child.val();
+            const username=child.key.replace(QR_NS,'');  // strip prefix for display
             const pre=d.preTest?.completed;
             const post=d.postTest?.completed;
             tbody.innerHTML+=`
             <tr>
-                <td><strong>${escapeHTML(d.name)}</strong><br><small style="color:var(--text-muted)">${escapeHTML(d.username)}</small></td>
+                <td><strong>${escapeHTML(d.name)}</strong><br><small style="color:var(--text-muted)">${escapeHTML(username)}</small></td>
                 <td>${escapeHTML(d.class||'—')}</td>
                 <td>
                     ${pre?'<span style="color:#1E8449">✓ قبلي</span>':''}
                     ${post?'<span style="color:#7D3C98"> ✓ بعدي</span>':''}
                     ${!pre&&!post?'<span style="color:#718096">لم يبدأ</span>':''}
                 </td>
-                <td><button class="action-btn-sm btn-danger" onclick="deleteStudent('${escapeHTML(d.username)}')">
+                <td><button class="action-btn-sm btn-danger" onclick="deleteStudent('${escapeHTML(username)}')">
                     <i class="fa-solid fa-trash"></i> حذف
                 </button></td>
             </tr>`;
         });
+        if(!hasQR) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>';
     });
 }
 
@@ -1006,7 +1021,7 @@ async function addStudent(){
     const pass=document.getElementById('new-password').value.trim();
     if(!name||!user||!pass){ alert('الرجاء تعبئة جميع الحقول'); return; }
     const hash=await sha256(pass);
-    db.ref(`${DB_ROOT}/students/${user}`).set({
+    sRef(user).set({
         name,class:cls,username:user,passwordHash:hash
     }).then(()=>{
         document.getElementById('add-msg').style.display='block';
@@ -1015,20 +1030,21 @@ async function addStudent(){
         document.getElementById('new-class').value='';
         document.getElementById('new-username').value='';
         document.getElementById('new-password').value='1234';
-    });
+    }).catch(e=>alert('خطأ في الحفظ: '+e.message));
 }
 
 function deleteStudent(username){
     if(!confirm(`هل أنت متأكد من حذف الطالب "${username}"؟`)) return;
-    db.ref(`${DB_ROOT}/students/${username}`).remove();
+    sRef(username).remove();
 }
 
 function exportCSV(){
-    db.ref(`${DB_ROOT}/students`).once('value').then(snap=>{
+    allRef().once('value').then(snap=>{
         if(!snap.exists()){ alert('لا توجد بيانات'); return; }
         let csv='﻿';
         csv+='الاسم,الفصل,التقييم القبلي,التقييم البعدي,التحسن,مسائل التدريب,دقة التدريب\n';
         snap.forEach(child=>{
+            if(!child.key.startsWith(QR_NS)) return;  // skip Kangaroo students
             const d=child.val();
             const pre=d.preTest;
             const post=d.postTest;
@@ -1083,7 +1099,7 @@ auth.onAuthStateChanged(firebaseUser=>{
     if(stored){
         CURRENT_USER=stored;
         auth.signInAnonymously().catch(()=>{});
-        db.ref(`${DB_ROOT}/students/${stored}`).once('value').then(snap=>{
+        sRef(stored).once('value').then(snap=>{
             if(snap.exists()){
                 const data=snap.val();
                 const ctrl=document.querySelector('.controls');
