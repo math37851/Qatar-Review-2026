@@ -10,11 +10,28 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
+    <!-- KaTeX library for fast and beautiful mathematical LaTeX rendering LTR -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" defer></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="data.js"></script>
+    <script src="roster.js"></script>
 
     <style>
+        /* ============================================================
+           إصلاح رندر معادلات KaTeX لتكون LTR وتصحيح مكان الأسس والرموز
+           ============================================================ */
+        .katex, .katex-display {
+            direction: ltr !important;
+            unicode-bidi: isolate !important;
+        }
+        .katex-display {
+            text-align: center !important;
+        }
+
         :root {
             --primary:      #1A5276;
             --primary-dark: #154360;
@@ -219,7 +236,7 @@
         </div>
         <div class="form-group">
             <label>اسم المستخدم</label>
-            <input id="login-username" type="text" placeholder="رقم الجوال أو admin">
+            <input id="login-username" type="text" placeholder="الرقم الشخصي أو admin">
         </div>
         <div class="form-group">
             <label>كلمة المرور</label>
@@ -280,10 +297,9 @@
             <div class="add-student-form">
                 <h3><i class="fa-solid fa-user-plus"></i> إضافة طالب جديد</h3>
                 <div class="form-row">
-                    <input id="new-name"     type="text"   placeholder="الاسم الكامل">
-                    <input id="new-class"    type="text"   placeholder="الفصل (مثال: 8أ)">
-                    <input id="new-username" type="text"   placeholder="اسم المستخدم (رقم الجوال)">
-                    <input id="new-password" type="text"   placeholder="كلمة المرور" value="1234">
+                    <input id="new-class"    type="text"   placeholder="الشعبة (مثال: 08/1)">
+                    <input id="new-username" type="text"   placeholder="الرقم الشخصي (QID)">
+                    <input id="new-password" type="text"   placeholder="رمز الدخول (تلقائياً الرقم الشخصي)">
                 </div>
                 <button class="btn-primary" onclick="addStudent()" style="font-size:.9rem;padding:.6rem 1.25rem;">
                     <i class="fa-solid fa-plus"></i> إضافة
@@ -341,6 +357,7 @@
                 <p id="desc-pre">10 أسئلة اختيار من متعدد — قبل التدريب</p>
             </div>
             <div class="mode-card prac" id="card-prac" onclick="startMode('practice')">
+                <div class="locked-badge" id="lock-prac" style="display:none"><i class="fa-solid fa-lock"></i> أكمل التقييم القبلي أولاً</div>
                 <div class="mode-icon"><i class="fa-solid fa-dumbbell"></i></div>
                 <h3>التدريب التفاعلي</h3>
                 <p>32 مسألة مع مساعد ذكي عند الخطأ</p>
@@ -520,6 +537,41 @@ function logout(){
     location.reload();
 }
 
+// دالة تشغيل ورندرة معادلات LaTeX بجمالية فائقة LTR
+function triggerMathRender() {
+    setTimeout(() => {
+        if (typeof renderMathInElement === 'function') {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        }
+    }, 50);
+}
+
+function loginUserSuccess(user, classSection) {
+    CURRENT_USER = user;
+    localStorage.setItem('qr_user', user);
+    document.getElementById('login-error').style.display = 'none';
+    showApp();
+    
+    // تحديث الهيدر بزر الخروج واسم الشعبة الرسمية للحفاظ على خصوصية الطالب
+    const ctrl = document.querySelector('.controls');
+    let lb = ctrl.querySelector('.logout-btn');
+    if (!lb) {
+        lb = document.createElement('button');
+        lb.className = 'logout-btn';
+        lb.onclick = logout;
+        ctrl.insertBefore(lb, ctrl.firstChild);
+    }
+    lb.innerHTML = `<i class="fa-solid fa-sign-out-alt"></i> خروج (شعبة ${escapeHTML(classSection)})`;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // LOGIN
 // ═══════════════════════════════════════════════════════════════
@@ -539,24 +591,55 @@ async function attemptLogin(){
         return;
     }
 
-    err.innerText='جاري التحقق...'; err.style.display='block';
-    await auth.signInAnonymously().catch(()=>{});
-    sRef(user).once('value').then(async snap=>{
-        if(!snap.exists()){ err.innerText='المستخدم غير مسجل في النظام'; return; }
-        const data=snap.val();
-        const hash=await sha256(pass);
-        if((data.passwordHash||await sha256(data.password||''))!==hash){ err.innerText='كلمة المرور غير صحيحة'; return; }
-        CURRENT_USER=user;
-        localStorage.setItem('qr_user',user);
-        err.style.display='none';
-        showApp();
-        // update header
-        const ctrl=document.querySelector('.controls');
-        const lb=document.createElement('button');
-        lb.className='logout-btn'; lb.onclick=logout;
-        lb.innerHTML=`<i class="fa-solid fa-sign-out-alt"></i> خروج (${escapeHTML(data.name.split(' ')[0])})`;
-        ctrl.insertBefore(lb,ctrl.firstChild);
-    }).catch(e=>{ err.innerText='خطأ في الاتصال: '+e.message; });
+    // تسجيل دخول الطالب المطور بالرقم الشخصي QID
+    err.innerText='جاري التحقق من الرقم الشخصي...'; err.style.display='block';
+    
+    // التحقق محلياً في كشوف المدرسة الـ 299 أولاً
+    const student = STUDENT_ROSTER.find(s => s.qid === user);
+    if (!student) {
+        err.innerText = 'الرقم الشخصي غير مسجل في كشوف الصف الثامن المعتمدة.';
+        err.style.display = 'block';
+        return;
+    }
+
+    if (user !== pass) {
+        err.innerText = 'الرمز الافتراضي للدخول هو نفسه رقمك الشخصي القطري.';
+        err.style.display = 'block';
+        return;
+    }
+
+    try {
+        await auth.signInAnonymously();
+        sRef(user).once('value').then(async snap => {
+            const hash = await sha256(pass);
+            if (!snap.exists()) {
+                // المرة الأولى للدخول: إنشاء سجل مجهول الهوية للحفاظ على الخصوصية الكاملة
+                sRef(user).set({
+                    name: "طالب",
+                    class: student.section,
+                    username: user,
+                    passwordHash: hash,
+                    preTest: { completed: false, score: 0 },
+                    postTest: { completed: false, score: 0 },
+                    practice: { totalSolved: 0, correctAnswers: 0, solvedIds: [] }
+                }).then(() => {
+                    loginUserSuccess(user, student.section);
+                });
+            } else {
+                // مسجل مسبقاً: التحقق من كلمة المرور ومتابعة الجلسة
+                const data = snap.val();
+                if ((data.passwordHash || await sha256(data.password || '')) !== hash) {
+                    err.innerText = 'كلمة المرور غير صحيحة.';
+                    err.style.display = 'block';
+                    return;
+                }
+                loginUserSuccess(user, data.class || student.section);
+            }
+        });
+    } catch(e) {
+        err.innerText = 'خطأ في الاتصال بقاعدة البيانات: ' + e.message;
+        err.style.display = 'block';
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -577,20 +660,62 @@ function refreshHomeUI(){
         document.getElementById('stat-pre').innerText=pre?.completed?`${pre.score}/10`:'—';
         document.getElementById('stat-post').innerText=post?.completed?`${post.score}/10`:'—';
 
-        // Pre badge
+        const cardPre = document.getElementById('card-pre');
+        const cardPrac = document.getElementById('card-prac');
+        const cardPost = document.getElementById('card-post');
+
+        const badgePre = document.getElementById('badge-pre');
+        const badgePost = document.getElementById('badge-post');
+
+        const lockPrac = document.getElementById('lock-prac');
+        const lockPost = document.getElementById('lock-post');
+
+        // إعادة ضبط الحظر والمؤشرات البصرية
+        cardPre.classList.remove('locked');
+        cardPrac.classList.remove('locked');
+        cardPost.classList.remove('locked');
+
+        badgePre.style.display = 'none';
+        badgePost.style.display = 'none';
+
+        lockPrac.style.display = 'none';
+        lockPost.style.display = 'none';
+
+        // 1. حالة التقييم القبلي
         if(pre?.completed){
-            document.getElementById('badge-pre').style.display='block';
+            badgePre.style.display='block';
             document.getElementById('desc-pre').innerText=`النتيجة: ${pre.score}/10`;
         }
-        // Post lock/badge
-        if(post?.completed){
-            document.getElementById('badge-post').style.display='block';
-            document.getElementById('lock-post').style.display='none';
-            document.getElementById('desc-post').innerText=`النتيجة: ${post.score}/10`;
-        } else if(!pre?.completed){
-            document.getElementById('lock-post').style.display='block';
-            document.getElementById('lock-post').innerHTML='<i class="fa-solid fa-lock"></i> أكمل التقييم القبلي أولاً';
+
+        // 2. حظر التدريب التفاعلي حتى إنهاء القبلي
+        if(!pre?.completed){
+            cardPrac.classList.add('locked');
+            lockPrac.style.display = 'block';
         }
+
+        // 3. حظر التقييم البعدي حتى إنهاء التدريب (حل جميع المسائل الـ 32)
+        if(post?.completed){
+            badgePost.style.display='block';
+            document.getElementById('desc-post').innerText=`النتيجة: ${post.score}/10`;
+            lockPost.style.display = 'none';
+        } else {
+            const isPracticeDone = (prac.totalSolved >= 32);
+            if(!pre?.completed){
+                // القبلي لم يكتمل بعد
+                cardPost.classList.add('locked');
+                lockPost.style.display = 'block';
+                lockPost.innerHTML = '<i class="fa-solid fa-lock"></i> أكمل التقييم القبلي أولاً';
+            } else if(!isPracticeDone){
+                // القبلي اكتمل لكن التدريب لم يكتمل بعد
+                cardPost.classList.add('locked');
+                lockPost.style.display = 'block';
+                lockPost.innerHTML = `<i class="fa-solid fa-lock"></i> أكمل التدريب أولاً (${prac.totalSolved || 0}/32)`;
+            } else {
+                // كلاهما اكتمل -> افتح البعدي!
+                lockPost.style.display = 'none';
+            }
+        }
+        triggerMathRender();
     });
 }
 
@@ -612,9 +737,13 @@ const STATE={
 
 function startMode(mode){
     // Guards
+    if(mode==='practice'){
+        const lb=document.getElementById('lock-prac');
+        if(lb && lb.style.display!=='none'){ alert('🔒 الرجاء إتمام التقييم القبلي أولاً لفتح التدريب التفاعلي!'); return; }
+    }
     if(mode==='post'){
         const lb=document.getElementById('lock-post');
-        if(lb.style.display!=='none'){ alert('أكمل التقييم القبلي أولاً'); return; }
+        if(lb && lb.style.display!=='none'){ alert('🔒 الرجاء إتمام التدريب التفاعلي بالكامل أولاً لفتح التقييم البعدي!'); return; }
     }
 
     STATE.mode=mode;
@@ -647,7 +776,7 @@ function loadQuestion(){
     document.getElementById('q-progress-fill').style.width=((STATE.qIndex/STATE.questions.length)*100)+'%';
 
     // Question text
-    document.getElementById('q-text').innerText=q.question;
+    document.getElementById('q-text').innerHTML=q.question;
 
     // MCQ vs Open
     const isMCQ=q.type==='mcq';
@@ -658,7 +787,7 @@ function loadQuestion(){
     if(isMCQ && q.options?.length){
         ['A','B','C','D'].forEach((l,i)=>{
             const btn=document.getElementById('opt-'+l);
-            btn.innerText=q.options[i]||l;
+            btn.innerHTML=q.options[i]||l;
             btn.classList.remove('selected','correct','wrong');
             btn.disabled=false;
         });
@@ -687,6 +816,7 @@ function loadQuestion(){
     },1000);
 
     showView('view-question');
+    triggerMathRender(); // رندرة معادلات KaTeX الفورية
 }
 
 function updateTimer(){
@@ -732,14 +862,14 @@ function checkAnswer(timeout=false){
     const fb=document.getElementById('feedback-box');
     if(isCorrect){
         fb.className='feedback-box correct-msg';
-        fb.innerHTML=`<h3><i class="fa-solid fa-check-circle"></i> إجابة صحيحة! 🎉</h3><p>${escapeHTML(q.explanation)}</p>`;
+        fb.innerHTML=`<h3><i class="fa-solid fa-check-circle"></i> إجابة صحيحة! 🎉</h3><p>${q.explanation}</p>`;
         fireConfetti(15);
     } else if(timeout){
         fb.className='feedback-box wrong-msg';
-        fb.innerHTML=`<h3><i class="fa-solid fa-clock"></i> انتهى الوقت!</h3><p>الإجابة الصحيحة: <strong>${escapeHTML(correctLetter)}) ${escapeHTML(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${escapeHTML(q.explanation)}</p>`;
+        fb.innerHTML=`<h3><i class="fa-solid fa-clock"></i> انتهى الوقت!</h3><p>الإجابة الصحيحة: <strong>${correctLetter}) ${q.options?.[letterIdx[correctLetter]]||''}</strong><br><br>${q.explanation}</p>`;
     } else {
         fb.className='feedback-box wrong-msg';
-        fb.innerHTML=`<h3><i class="fa-solid fa-times-circle"></i> إجابة غير صحيحة</h3><p>اخترت: <strong>${escapeHTML(STATE.selectedOption)||'—'}</strong><br>الإجابة الصحيحة: <strong>${escapeHTML(correctLetter)}) ${escapeHTML(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${escapeHTML(q.explanation)}</p>`;
+        fb.innerHTML=`<h3><i class="fa-solid fa-times-circle"></i> إجابة غير صحيحة</h3><p>اخترت: <strong>${STATE.selectedOption||'—'}</strong><br>الإجابة الصحيحة: <strong>${correctLetter}) ${q.options?.[letterIdx[correctLetter]]||''}</strong><br><br>${q.explanation}</p>`;
         if(STATE.mode==='practice'){
             document.getElementById('ai-chat-btn').style.display='block';
         }
@@ -750,13 +880,14 @@ function checkAnswer(timeout=false){
     const st=document.getElementById('strategy-text');
     if(STATE.mode==='practice' && q.strategy){
         sb.style.display='block';
-        st.innerText=q.strategy;
+        st.innerHTML=q.strategy;
     } else { sb.style.display='none'; }
 
     document.getElementById('feedback-sec').style.display='block';
 
     // Save practice stats
     if(STATE.mode==='practice') savePracticeAnswer(q,isCorrect);
+    triggerMathRender(); // رندرة معادلات KaTeX الفورية في صندوق الملاحظات
 }
 
 function revealSolution(){
@@ -767,15 +898,16 @@ function revealSolution(){
 
     const fb=document.getElementById('feedback-box');
     fb.className='feedback-box solution';
-    fb.innerHTML=`<h3><i class="fa-solid fa-lightbulb"></i> الحل النموذجي</h3><p><strong>${escapeHTML(q.correctText)}</strong><br><br>${escapeHTML(q.explanation)}</p>`;
+    fb.innerHTML=`<h3><i class="fa-solid fa-lightbulb"></i> الحل النموذجي</h3><p><strong>${q.correctText}</strong><br><br>${q.explanation}</p>`;
 
     const sb=document.getElementById('strategy-box');
     const st=document.getElementById('strategy-text');
-    if(q.strategy){ sb.style.display='block'; st.innerText=q.strategy; }
+    if(q.strategy){ sb.style.display='block'; st.innerHTML=q.strategy; }
 
     document.getElementById('feedback-sec').style.display='block';
     STATE.answers[q.id]='مفتوح';
     if(STATE.mode==='practice') savePracticeAnswer(q,false);
+    triggerMathRender(); // رندرة معادلات KaTeX
 }
 
 function nextQuestion(){
@@ -883,11 +1015,23 @@ async function sendAIMessage(){
     const btn=document.getElementById('ai-send-btn');
     const text=input.value.trim();
     if(!text||AI_STATE.isLoading) return;
+    const q=AI_STATE.currentQ;
 
     if(OFF_TOPIC.some(w=>text.toLowerCase().includes(w))){
         input.value='';
         appendMsg('user',text);
-        appendMsg('ai','أنا هنا فقط لمساعدتك في فهم هذه المسألة 😊');
+        const blockReply = 'أنا هنا فقط لمساعدتك في فهم هذه المسألة 😊';
+        appendMsg('ai',blockReply);
+        
+        // خزن المحاولات المفلترة للذكاء الاصطناعي في فايربيز للتحليل
+        if(CURRENT_USER && q){
+            db.ref(`students/qr8_${CURRENT_USER}/aiLogs/${q.id}`).push({
+                timestamp: new Date().toLocaleString('ar-QA'),
+                userMessage: text,
+                aiReply: blockReply,
+                isOffTopic: true
+            });
+        }
         return;
     }
 
@@ -903,7 +1047,6 @@ async function sendAIMessage(){
     document.getElementById('ai-messages').scrollTop=99999;
 
     try{
-        const q=AI_STATE.currentQ;
         const res=await fetch(WORKER_URL,{
             method:'POST',
             headers:{'Content-Type':'application/json'},
@@ -920,6 +1063,16 @@ async function sendAIMessage(){
         document.getElementById('ai-typing')?.remove();
         appendMsg('ai',reply);
         AI_STATE.messages.push({role:'assistant',content:reply});
+
+        // خزن المحادثة الناجحة للذكاء الاصطناعي في فايربيز للتحليل والمتابعة
+        if(CURRENT_USER && q){
+            db.ref(`students/qr8_${CURRENT_USER}/aiLogs/${q.id}`).push({
+                timestamp: new Date().toLocaleString('ar-QA'),
+                userMessage: text,
+                aiReply: reply,
+                isOffTopic: false
+            });
+        }
     }catch(e){
         document.getElementById('ai-typing')?.remove();
         appendMsg('ai','تعذّر الاتصال. تحقق من الإنترنت.');
@@ -927,6 +1080,7 @@ async function sendAIMessage(){
         AI_STATE.isLoading=false;
         btn.disabled=false;
         input.focus();
+        triggerMathRender(); // رندرة معادلات الكود في محادثة المساعد
     }
 }
 
@@ -952,6 +1106,7 @@ function loadResultsData(){
             if(!child.key.startsWith(QR_NS)) return;  // skip Kangaroo students
             hasQR=true;
             const d=child.val();
+            const qid=child.key.replace(QR_NS,'');
             const pre=d.preTest||null;
             const post=d.postTest||null;
             const prac=d.practice||{totalSolved:0,correctAnswers:0};
@@ -971,7 +1126,7 @@ function loadResultsData(){
 
             tbody.innerHTML+=`
             <tr>
-                <td><strong>${escapeHTML(d.name)}</strong></td>
+                <td><strong>${escapeHTML(qid)}</strong></td>
                 <td>${escapeHTML(d.class||'—')}</td>
                 <td style="font-size:1.1rem;font-weight:700;color:#1A5276">${escapeHTML(preScore)}</td>
                 <td style="font-size:1.1rem;font-weight:700;color:#7D3C98">${escapeHTML(postScore)}</td>
@@ -998,7 +1153,7 @@ function loadStudentsData(){
             const post=d.postTest?.completed;
             tbody.innerHTML+=`
             <tr>
-                <td><strong>${escapeHTML(d.name)}</strong><br><small style="color:var(--text-muted)">${escapeHTML(username)}</small></td>
+                <td><strong>طالب مجهول الهوية</strong><br><small style="color:var(--text-muted)">الرقم الشخصي: ${escapeHTML(username)}</small></td>
                 <td>${escapeHTML(d.class||'—')}</td>
                 <td>
                     ${pre?'<span style="color:#1E8449">✓ قبلي</span>':''}
@@ -1006,7 +1161,7 @@ function loadStudentsData(){
                     ${!pre&&!post?'<span style="color:#718096">لم يبدأ</span>':''}
                 </td>
                 <td><button class="action-btn-sm btn-danger" onclick="deleteStudent('${escapeHTML(username)}')">
-                    <i class="fa-solid fa-trash"></i> حذف
+                     حذف الطالب 🗑️
                 </button></td>
             </tr>`;
         });
@@ -1015,26 +1170,26 @@ function loadStudentsData(){
 }
 
 async function addStudent(){
-    const name=document.getElementById('new-name').value.trim();
+    const name="طالب";
     const cls=document.getElementById('new-class').value.trim();
     const user=document.getElementById('new-username').value.trim();
-    const pass=document.getElementById('new-password').value.trim();
-    if(!name||!user||!pass){ alert('الرجاء تعبئة جميع الحقول'); return; }
+    let pass=document.getElementById('new-password').value.trim();
+    if(!cls||!user){ alert('الرجاء تعبئة الشعبة والرقم الشخصي'); return; }
+    if(!pass) pass = user;
     const hash=await sha256(pass);
     sRef(user).set({
         name,class:cls,username:user,passwordHash:hash
     }).then(()=>{
         document.getElementById('add-msg').style.display='block';
         setTimeout(()=>document.getElementById('add-msg').style.display='none',3000);
-        document.getElementById('new-name').value='';
         document.getElementById('new-class').value='';
         document.getElementById('new-username').value='';
-        document.getElementById('new-password').value='1234';
+        document.getElementById('new-password').value='';
     }).catch(e=>alert('خطأ في الحفظ: '+e.message));
 }
 
 function deleteStudent(username){
-    if(!confirm(`هل أنت متأكد من حذف الطالب "${username}"؟`)) return;
+    if(!confirm(`هل أنت متأكد من حذف الطالب ذو الرقم الشخصي "${username}"؟`)) return;
     sRef(username).remove();
 }
 
@@ -1042,16 +1197,17 @@ function exportCSV(){
     allRef().once('value').then(snap=>{
         if(!snap.exists()){ alert('لا توجد بيانات'); return; }
         let csv='﻿';
-        csv+='الاسم,الفصل,التقييم القبلي,التقييم البعدي,التحسن,مسائل التدريب,دقة التدريب\n';
+        csv+='الرقم الشخصي,الفصل,التقييم القبلي,التقييم البعدي,التحسن,مسائل التدريب,دقة التدريب\n';
         snap.forEach(child=>{
             if(!child.key.startsWith(QR_NS)) return;  // skip Kangaroo students
             const d=child.val();
+            const qid=child.key.replace(QR_NS,'');
             const pre=d.preTest;
             const post=d.postTest;
             const prac=d.practice||{totalSolved:0,correctAnswers:0};
             const acc=prac.totalSolved>0?Math.round((prac.correctAnswers/prac.totalSolved)*100):0;
             const diff=(pre?.completed&&post?.completed)?(post.score-pre.score):'—';
-            csv+=`"${d.name}","${d.class||''}","${pre?.completed?pre.score+'/10':'—'}","${post?.completed?post.score+'/10':'—'}","${diff}",${prac.totalSolved},"${prac.totalSolved>0?acc+'%':'—'}"\n`;
+            csv+=`"${qid}","${d.class||''}","${pre?.completed?pre.score+'/10':'—'}","${post?.completed?post.score+'/10':'—'}","${diff}",${prac.totalSolved},"${prac.totalSolved>0?acc+'%':'—'}"\n`;
         });
         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
         const a=document.createElement('a');
@@ -1090,7 +1246,6 @@ document.getElementById('themeToggle').addEventListener('click',()=>{
 });
 if(_theme==='dark') document.querySelector('#themeToggle i').className='fa-solid fa-sun';
 
-// ═══════════════════════════════════════════════════════════════
 // AUTH STATE
 // ═══════════════════════════════════════════════════════════════
 auth.onAuthStateChanged(firebaseUser=>{
@@ -1103,10 +1258,13 @@ auth.onAuthStateChanged(firebaseUser=>{
             if(snap.exists()){
                 const data=snap.val();
                 const ctrl=document.querySelector('.controls');
-                const lb=document.createElement('button');
-                lb.className='logout-btn'; lb.onclick=logout;
-                lb.innerHTML=`<i class="fa-solid fa-sign-out-alt"></i> خروج (${escapeHTML(data.name.split(' ')[0])})`;
-                ctrl.insertBefore(lb,ctrl.firstChild);
+                let lb=ctrl.querySelector('.logout-btn');
+                if(!lb){
+                    lb=document.createElement('button');
+                    lb.className='logout-btn'; lb.onclick=logout;
+                    ctrl.insertBefore(lb,ctrl.firstChild);
+                }
+                lb.innerHTML=`<i class="fa-solid fa-sign-out-alt"></i> خروج (شعبة ${escapeHTML(data.class || '')})`;
             }
             showApp();
         }).catch(()=>showLogin());
