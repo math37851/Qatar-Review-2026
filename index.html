@@ -84,6 +84,8 @@
             justify-content: center; 
             z-index: 999; 
             padding: 1.5rem;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .login-container { 
             display: flex; 
@@ -329,14 +331,22 @@
         }
 
         @media (max-width: 800px) {
+            #login-overlay {
+                align-items: flex-start;
+                padding: 1.5rem 1rem;
+            }
             .login-container {
                 flex-direction: column;
                 height: auto;
                 max-width: 440px;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
             }
             .login-brand-panel {
                 padding: 2rem 1.5rem;
                 gap: 1.5rem;
+                border-left: none;
+                border-bottom: 1px solid var(--border);
             }
             .brand-main-text {
                 margin: 1rem 0;
