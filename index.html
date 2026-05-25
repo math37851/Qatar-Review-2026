@@ -234,13 +234,17 @@
                 <option value="teacher">معلم</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>اسم المستخدم</label>
-            <input id="login-username" type="text" placeholder="الرقم الشخصي أو admin">
+        <div id="student-login-info" style="background:rgba(26,82,118,0.06); padding:0.75rem 1rem; border-radius:0.75rem; border-right:4px solid var(--primary); margin-bottom:1.25rem; font-size:0.85rem; line-height:1.5; color:var(--text);">
+            💡 <strong>ملاحظة هامة للطلاب:</strong><br>
+            يتم الدخول بالرقم الشخصي القطري (QID) المكون من 11 رقماً كاسم مستخدم وكلمة مرور في نفس الوقت.
         </div>
         <div class="form-group">
-            <label>كلمة المرور</label>
-            <input id="login-password" type="password" placeholder="••••••••"
+            <label id="label-username">الرقم الشخصي القطري (QID)</label>
+            <input id="login-username" type="text" placeholder="أدخل 11 رقماً (مثال: 30963403820)">
+        </div>
+        <div class="form-group">
+            <label id="label-password">كلمة المرور (الرقم الشخصي أيضاً)</label>
+            <input id="login-password" type="password" placeholder="أدخل رقمك الشخصي مجدداً للدخول"
                    onkeydown="if(event.key==='Enter') attemptLogin()">
         </div>
         <button class="btn-login" onclick="attemptLogin()">
@@ -1281,6 +1285,32 @@ document.getElementById('themeToggle').addEventListener('click',()=>{
     document.querySelector('#themeToggle i').className=_theme==='light'?'fa-solid fa-moon':'fa-solid fa-sun';
 });
 if(_theme==='dark') document.querySelector('#themeToggle i').className='fa-solid fa-sun';
+
+// ═══════════════════════════════════════════════════════════════
+// LOGIN DYNAMIC LABELS
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('login-role').addEventListener('change', (e) => {
+    const isTeacher = e.target.value === 'teacher';
+    const labelUser = document.getElementById('label-username');
+    const inputUser = document.getElementById('login-username');
+    const labelPass = document.getElementById('label-password');
+    const inputPass = document.getElementById('login-password');
+    const studentInfo = document.getElementById('student-login-info');
+    
+    if (isTeacher) {
+        labelUser.textContent = 'اسم المستخدم للمعلم';
+        inputUser.placeholder = 'أدخل اسم المستخدم (admin)';
+        labelPass.textContent = 'كلمة المرور';
+        inputPass.placeholder = '••••••••';
+        if (studentInfo) studentInfo.style.display = 'none';
+    } else {
+        labelUser.textContent = 'الرقم الشخصي القطري (QID)';
+        inputUser.placeholder = 'أدخل 11 رقماً (مثال: 30963403820)';
+        labelPass.textContent = 'كلمة المرور (الرقم الشخصي أيضاً)';
+        inputPass.placeholder = 'أدخل رقمك الشخصي مجدداً للدخول';
+        if (studentInfo) studentInfo.style.display = 'block';
+    }
+});
 
 // AUTH STATE
 // ═══════════════════════════════════════════════════════════════
