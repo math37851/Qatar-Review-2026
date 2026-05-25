@@ -865,34 +865,32 @@ async function attemptLogin(){
 
     try {
         await auth.signInAnonymously();
-        sRef(user).once('value').then(async snap => {
-            const hash = await sha256(pass);
-            if (!snap.exists()) {
-                // المرة الأولى للدخول: إنشاء سجل مجهول الهوية للحفاظ على الخصوصية الكاملة
-                sRef(user).set({
-                    name: "طالب",
-                    class: student.section,
-                    username: user,
-                    passwordHash: hash,
-                    preTest: { completed: false, score: 0 },
-                    postTest: { completed: false, score: 0 },
-                    practice: { totalSolved: 0, correctAnswers: 0, solvedIds: [] }
-                }).then(() => {
-                    loginUserSuccess(user, student.section);
-                });
-            } else {
-                // مسجل مسبقاً: التحقق من كلمة المرور ومتابعة الجلسة
-                const data = snap.val();
-                if ((data.passwordHash || await sha256(data.password || '')) !== hash) {
-                    err.innerText = 'كلمة المرور غير صحيحة.';
-                    err.style.display = 'block';
-                    return;
-                }
-                loginUserSuccess(user, data.class || student.section);
+        const snap = await sRef(user).once('value');
+        const hash = await sha256(pass);
+        if (!snap.exists()) {
+            // المرة الأولى للدخول: إنشاء سجل مجهول الهوية للحفاظ على الخصوصية الكاملة
+            await sRef(user).set({
+                name: "طالب",
+                class: student.section,
+                username: user,
+                passwordHash: hash,
+                preTest: { completed: false, score: 0 },
+                postTest: { completed: false, score: 0 },
+                practice: { totalSolved: 0, correctAnswers: 0, solvedIds: [] }
+            });
+            loginUserSuccess(user, student.section);
+        } else {
+            // مسجل مسبقاً: التحقق من كلمة المرور ومتابعة الجلسة
+            const data = snap.val();
+            if ((data.passwordHash || await sha256(data.password || '')) !== hash) {
+                err.innerText = 'كلمة المرور غير صحيحة.';
+                err.style.display = 'block';
+                return;
             }
-        });
+            loginUserSuccess(user, data.class || student.section);
+        }
     } catch(e) {
-        err.innerText = 'خطأ في الاتصال بقاعدة البيانات: ' + e.message;
+        err.innerText = 'خطأ في الاتصال بقاعدة البيانات أو الصلاحيات: ' + e.message;
         err.style.display = 'block';
     }
 }
