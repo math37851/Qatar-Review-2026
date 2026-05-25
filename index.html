@@ -72,18 +72,156 @@
         .view.active { display:block; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-        /* ── Login ── */
-        #login-overlay { position:fixed; inset:0; background:linear-gradient(135deg,#1A5276,#0D2137); display:flex; align-items:center; justify-content:center; z-index:999; }
-        .login-card { background:var(--card); border-radius:1.5rem; padding:2.5rem; width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
-        .login-card h2 { text-align:center; color:var(--primary); margin-bottom:.25rem; font-size:1.6rem; }
-        .login-card p.sub { text-align:center; color:var(--text-muted); margin-bottom:1.5rem; font-size:.9rem; }
-        .form-group { margin-bottom:1rem; }
-        .form-group label { display:block; margin-bottom:.35rem; font-weight:700; font-size:.9rem; }
-        .form-group select, .form-group input { width:100%; padding:.75rem 1rem; border:2px solid var(--border); border-radius:.75rem; background:var(--bg); color:var(--text); font-family:inherit; font-size:1rem; }
-        .form-group select:focus, .form-group input:focus { outline:none; border-color:var(--primary); }
-        .btn-login { width:100%; padding:.9rem; background:var(--primary); color:#fff; border:none; border-radius:.75rem; font-size:1.1rem; font-weight:700; cursor:pointer; font-family:inherit; }
-        .btn-login:hover { background:var(--primary-dark); }
+        /* ── Login Split System ── */
+        #login-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: linear-gradient(135deg, #2c050f, #0d0104); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 999; 
+            padding: 1.5rem;
+        }
+        .login-container { 
+            display: flex; 
+            width: 100%; 
+            max-width: 950px; 
+            height: 580px; 
+            border-radius: 1.5rem; 
+            overflow: hidden; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); 
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .login-brand-panel { 
+            flex: 1; 
+            background: linear-gradient(135deg, #8A1538 0%, #5c0d23 100%); 
+            padding: 3rem 2.5rem; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            color: #ffffff; 
+            position: relative;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(212, 172, 13, 0.15) 0px, transparent 60%),
+                radial-gradient(at 100% 100%, rgba(0, 0, 0, 0.4) 0px, transparent 60%);
+        }
+        .login-brand-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 0);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+        .brand-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .brand-logo-area span {
+            background: linear-gradient(135deg, #D4AC0D, #F1C40F);
+            color: #8A1538;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 800;
+            box-shadow: 0 8px 20px rgba(212, 172, 13, 0.3);
+        }
+        .brand-logo-text h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fce4ec;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+        .brand-logo-text h2 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 0.1rem;
+        }
+        .brand-main-text {
+            margin: 2rem 0;
+        }
+        .brand-main-text h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1.4;
+            color: #ffffff;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .brand-main-text p {
+            font-size: 0.95rem;
+            color: #fce4ec;
+            margin-top: 0.75rem;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+        .brand-footer-text {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .login-form-panel { 
+            flex: 1; 
+            padding: 3rem 2.5rem; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            background: var(--card);
+        }
+        .login-form-panel h2 {
+            color: var(--text);
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+        .login-form-panel p.sub {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display:block; margin-bottom:.35rem; font-weight:700; font-size:.85rem; color:var(--text); }
+        .form-group select, .form-group input { width:100%; padding:.75rem 1rem; border:2px solid var(--border); border-radius:.75rem; background:var(--bg); color:var(--text); font-family:inherit; font-size:0.95rem; }
+        .form-group select:focus, .form-group input:focus { outline:none; border-color:#8A1538; }
+        
+        .btn-login { width:100%; padding:.9rem; background:#8A1538; color:#fff; border:none; border-radius:.75rem; font-size:1.05rem; font-weight:700; cursor:pointer; font-family:inherit; transition: var(--transition-smooth); }
+        .btn-login:hover { background:#6b0d29; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(138, 21, 56, 0.25); }
+        .btn-login:active { transform: translateY(0); }
         .login-error { display:none; background:#FEE2E2; color:#991B1B; padding:.6rem 1rem; border-radius:.5rem; margin-top:.75rem; font-size:.9rem; text-align:center; }
+
+        @media (max-width: 800px) {
+            .login-container {
+                flex-direction: column;
+                height: auto;
+                max-width: 440px;
+            }
+            .login-brand-panel {
+                padding: 2rem 1.5rem;
+                gap: 1.5rem;
+            }
+            .brand-main-text {
+                margin: 1rem 0;
+            }
+            .brand-main-text h1 {
+                font-size: 1.4rem;
+            }
+            .login-form-panel {
+                padding: 2.5rem 1.5rem;
+            }
+        }
 
         /* ── Home ── */
         .hero { text-align:center; margin-bottom:2rem; }
@@ -223,34 +361,58 @@
 
 <!-- ══ LOGIN ══════════════════════════════════════════════════ -->
 <div id="login-overlay">
-    <div class="login-card">
-        <div style="text-align:center;font-size:2.5rem;margin-bottom:.5rem">📐</div>
-        <h2>مراجعة الفصل الثاني</h2>
-        <p class="sub">رياضيات الصف الثامن — مدرسة سعيد بن زيد</p>
-        <div class="form-group">
-            <label>نوع المستخدم</label>
-            <select id="login-role">
-                <option value="student">طالب</option>
-                <option value="teacher">معلم</option>
-            </select>
+    <div class="login-container">
+        
+        <!-- Left Panel: Brand Artwork -->
+        <div class="login-brand-panel">
+            <div class="brand-logo-area">
+                <span>📐</span>
+                <div class="brand-logo-text">
+                    <h3>دولة قطر · وزارة التربية والتعليم</h3>
+                    <h2>مدرسة سعيد بن زيد الإعدادية</h2>
+                </div>
+            </div>
+            <div class="brand-main-text">
+                <h1>بوابة التقييم والمراجعة الذكية 🇶🇦</h1>
+                <p>منصة تفاعلية مخصصة لمراجعة منهج الرياضيات للصف الثامن، تدعم التقييم الذكي والتوجيه الفردي باستخدام الذكاء الاصطناعي الآمن للحفاظ على خصوصيتك.</p>
+            </div>
+            <div class="brand-footer-text">
+                <span>رؤية قطر الوطنية 2030 🌟</span>
+                <span>الصف الثامن المتوسط</span>
+            </div>
         </div>
-        <div id="student-login-info" style="background:rgba(26,82,118,0.06); padding:0.75rem 1rem; border-radius:0.75rem; border-right:4px solid var(--primary); margin-bottom:1.25rem; font-size:0.85rem; line-height:1.5; color:var(--text);">
-            💡 <strong>ملاحظة هامة للطلاب:</strong><br>
-            يتم الدخول بالرقم الشخصي القطري (QID) المكون من 11 رقماً كاسم مستخدم وكلمة مرور في نفس الوقت.
+        
+        <!-- Right Panel: Login Form -->
+        <div class="login-form-panel">
+            <h2>مراجعة الفصل الدراسي الثاني</h2>
+            <p class="sub">تسجيل الدخول الآمن للمنصة التعليمية</p>
+            
+            <div class="form-group">
+                <label>نوع المستخدم</label>
+                <select id="login-role">
+                    <option value="student">طالب</option>
+                    <option value="teacher">معلم</option>
+                </select>
+            </div>
+            <div id="student-login-info" style="background:rgba(138,21,56,0.06); padding:0.75rem 1rem; border-radius:0.75rem; border-right:4px solid #8A1538; margin-bottom:1.25rem; font-size:0.85rem; line-height:1.5; color:var(--text);">
+                💡 <strong>ملاحظة هامة للطلاب:</strong><br>
+                يتم الدخول بالرقم الشخصي القطري (QID) المكون من 11 رقماً كاسم مستخدم وكلمة مرور في نفس الوقت.
+            </div>
+            <div class="form-group">
+                <label id="label-username">الرقم الشخصي القطري (QID)</label>
+                <input id="login-username" type="text" placeholder="أدخل 11 رقماً (مثال: 30963403820)">
+            </div>
+            <div class="form-group">
+                <label id="label-password">كلمة المرور (الرقم الشخصي أيضاً)</label>
+                <input id="login-password" type="password" placeholder="أدخل رقمك الشخصي مجدداً للدخول"
+                       onkeydown="if(event.key==='Enter') attemptLogin()">
+            </div>
+            <button class="btn-login" onclick="attemptLogin()">
+                <i class="fa-solid fa-right-to-bracket"></i> دخول
+            </button>
+            <div class="login-error" id="login-error"></div>
         </div>
-        <div class="form-group">
-            <label id="label-username">الرقم الشخصي القطري (QID)</label>
-            <input id="login-username" type="text" placeholder="أدخل 11 رقماً (مثال: 30963403820)">
-        </div>
-        <div class="form-group">
-            <label id="label-password">كلمة المرور (الرقم الشخصي أيضاً)</label>
-            <input id="login-password" type="password" placeholder="أدخل رقمك الشخصي مجدداً للدخول"
-                   onkeydown="if(event.key==='Enter') attemptLogin()">
-        </div>
-        <button class="btn-login" onclick="attemptLogin()">
-            <i class="fa-solid fa-right-to-bracket"></i> دخول
-        </button>
-        <div class="login-error" id="login-error"></div>
+        
     </div>
 </div>
 
