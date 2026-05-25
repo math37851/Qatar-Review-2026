@@ -387,59 +387,74 @@
         <div class="q-progress">
             <div class="q-progress-bar"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
         </div>
-        <div class="q-card">
-            <div class="q-meta">
-                <span id="q-topic-label"></span>
-            </div>
-            <div class="q-text" id="q-text"></div>
-        </div>
-        <!-- MCQ Options -->
-        <div id="mcq-section">
-            <div class="options-grid" id="q-options">
-                <button class="option-btn" id="opt-A" onclick="selectOption(this,'A')"></button>
-                <button class="option-btn" id="opt-B" onclick="selectOption(this,'B')"></button>
-                <button class="option-btn" id="opt-C" onclick="selectOption(this,'C')"></button>
-                <button class="option-btn" id="opt-D" onclick="selectOption(this,'D')"></button>
-            </div>
-        </div>
-        <!-- Open Answer -->
-        <div id="open-section" style="display:none">
-            <textarea class="open-answer" id="open-answer" placeholder="اكتب إجابتك هنا..."></textarea>
-        </div>
-        <div class="action-bar">
-            <button class="btn-secondary" onclick="quitQuestion()">إنهاء</button>
-            <button class="btn-primary" id="btn-check" onclick="checkAnswer()" disabled>
-                <i class="fa-solid fa-check"></i> تحقق
-            </button>
-            <button class="btn-primary" id="btn-reveal" onclick="revealSolution()" style="display:none">
-                <i class="fa-solid fa-eye"></i> عرض الحل
-            </button>
-            <button class="btn-primary" id="btn-next" onclick="nextQuestion()" style="display:none">
-                التالي <i class="fa-solid fa-arrow-left"></i>
-            </button>
-        </div>
-        <!-- Feedback -->
-        <div class="feedback-sec" id="feedback-sec">
-            <div class="feedback-box" id="feedback-box"></div>
-            <div class="strategy-box" id="strategy-box" style="display:none">
-                <h3><i class="fa-solid fa-brain"></i> استراتيجية الحل</h3>
-                <p id="strategy-text"></p>
-            </div>
-            <!-- AI Chat -->
-            <button class="ai-chat-btn" id="ai-chat-btn" onclick="openAIChat()">
-                <i class="fa-solid fa-robot"></i> اسأل المساعد الذكي — ساعدني في فهم الحل
-            </button>
-            <div class="ai-chat-container" id="ai-chat-container">
-                <div class="ai-chat-header"><i class="fa-solid fa-robot"></i> المساعد الذكي للرياضيات</div>
-                <div class="ai-messages" id="ai-messages"></div>
-                <div class="ai-input-area">
-                    <input type="text" id="ai-input" class="ai-input" placeholder="اكتب سؤالك..."
-                           onkeydown="if(event.key==='Enter') sendAIMessage()">
-                    <button class="ai-send-btn" id="ai-send-btn" onclick="sendAIMessage()">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
+        <!-- Workspace: Two columns on large screens -->
+        <div style="display:flex; gap:1.5rem; margin-top:1.5rem; flex-wrap:wrap;">
+            
+            <!-- Left Column: Slide Image -->
+            <div id="q-slide-container" style="flex:1.1; min-width:320px; display:none;">
+                <div class="q-card" style="display:flex; align-items:center; justify-content:center; padding:1rem; min-height:350px; height:100%;">
+                    <img id="q-slide-img" src="" alt="شريحة السؤال" style="max-width:100%; max-height:450px; border-radius:0.75rem; object-fit:contain; cursor:zoom-in; box-shadow:var(--shadow);">
                 </div>
             </div>
+            
+            <!-- Right Column: Question Details -->
+            <div style="flex:1.5; min-width:320px; display:flex; flex-direction:column; gap:1rem;">
+                <div class="q-card" style="margin-bottom:0;">
+                    <div class="q-meta">
+                        <span id="q-topic-label"></span>
+                    </div>
+                    <div class="q-text" id="q-text"></div>
+                </div>
+                <!-- MCQ Options -->
+                <div id="mcq-section">
+                    <div class="options-grid" id="q-options">
+                        <button class="option-btn" id="opt-A" onclick="selectOption(this,'A')"></button>
+                        <button class="option-btn" id="opt-B" onclick="selectOption(this,'B')"></button>
+                        <button class="option-btn" id="opt-C" onclick="selectOption(this,'C')"></button>
+                        <button class="option-btn" id="opt-D" onclick="selectOption(this,'D')"></button>
+                    </div>
+                </div>
+                <!-- Open Answer -->
+                <div id="open-section" style="display:none">
+                    <textarea class="open-answer" id="open-answer" placeholder="اكتب إجابتك هنا..."></textarea>
+                </div>
+                <div class="action-bar">
+                    <button class="btn-secondary" onclick="quitQuestion()">إنهاء</button>
+                    <button class="btn-primary" id="btn-check" onclick="checkAnswer()" disabled>
+                        <i class="fa-solid fa-check"></i> تحقق
+                    </button>
+                    <button class="btn-primary" id="btn-reveal" onclick="revealSolution()" style="display:none">
+                        <i class="fa-solid fa-eye"></i> عرض الحل
+                    </button>
+                    <button class="btn-primary" id="btn-next" onclick="nextQuestion()" style="display:none">
+                        التالي <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+                <!-- Feedback -->
+                <div class="feedback-sec" id="feedback-sec" style="display:none;">
+                    <div class="feedback-box" id="feedback-box"></div>
+                    <div class="strategy-box" id="strategy-box" style="display:none">
+                        <h3><i class="fa-solid fa-brain"></i> استراتيجية الحل</h3>
+                        <p id="strategy-text"></p>
+                    </div>
+                    <!-- AI Chat -->
+                    <button class="ai-chat-btn" id="ai-chat-btn" onclick="openAIChat()">
+                        <i class="fa-solid fa-robot"></i> اسأل المساعد الذكي — ساعدني في فهم الحل
+                    </button>
+                    <div class="ai-chat-container" id="ai-chat-container">
+                        <div class="ai-chat-header"><i class="fa-solid fa-robot"></i> المساعد الذكي للرياضيات</div>
+                        <div class="ai-messages" id="ai-messages"></div>
+                        <div class="ai-input-area">
+                            <input type="text" id="ai-input" class="ai-input" placeholder="اكتب سؤالك..."
+                                   onkeydown="if(event.key==='Enter') sendAIMessage()">
+                            <button class="ai-send-btn" id="ai-send-btn" onclick="sendAIMessage()">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
@@ -778,6 +793,17 @@ function loadQuestion(){
     // Question text
     document.getElementById('q-text').innerHTML=q.question;
 
+    // Slide Image
+    const slideCont = document.getElementById('q-slide-container');
+    const slideImg = document.getElementById('q-slide-img');
+    if(q.imageFile) {
+        slideImg.src = q.imageFile;
+        slideCont.style.display = 'block';
+    } else {
+        slideCont.style.display = 'none';
+        slideImg.src = '';
+    }
+
     // MCQ vs Open
     const isMCQ=q.type==='mcq';
     document.getElementById('mcq-section').style.display=isMCQ?'block':'none';
@@ -794,9 +820,11 @@ function loadQuestion(){
     }
 
     // Buttons
+    const isTest = STATE.mode === 'pre' || STATE.mode === 'post';
     document.getElementById('btn-check').style.display=isMCQ?'block':'none';
     document.getElementById('btn-check').disabled=true;
-    document.getElementById('btn-reveal').style.display=isMCQ?'none':'block';
+    document.getElementById('btn-check').innerHTML=isTest ? 'التالي <i class="fa-solid fa-arrow-left"></i>' : '<i class="fa-solid fa-check"></i> تحقق';
+    document.getElementById('btn-reveal').style.display=(isMCQ || isTest)?'none':'block';
     document.getElementById('btn-next').style.display='none';
     document.getElementById('feedback-sec').style.display='none';
     document.getElementById('ai-chat-btn').style.display='none';
@@ -842,6 +870,14 @@ function checkAnswer(timeout=false){
     const letterIdx={'A':0,'B':1,'C':2,'D':3};
     const correctLetter=q.correct; // e.g. "C"
     const isCorrect=!timeout&&STATE.selectedOption===correctLetter;
+
+    if(STATE.mode === 'pre' || STATE.mode === 'post') {
+        // Record answer and proceed immediately with NO feedback
+        STATE.answers[q.id]=STATE.selectedOption||'—';
+        if(isCorrect) STATE.correctCount++;
+        nextQuestion();
+        return;
+    }
 
     // Highlight buttons
     document.querySelectorAll('.option-btn').forEach(btn=>{
