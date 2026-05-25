@@ -76,7 +76,9 @@
         #login-overlay { 
             position: fixed; 
             inset: 0; 
-            background: linear-gradient(135deg, #2c050f, #0d0104); 
+            background: rgba(15, 23, 42, 0.95); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             display: flex; 
             align-items: center; 
             justify-content: center; 
@@ -96,22 +98,20 @@
         }
         .login-brand-panel { 
             flex: 1; 
-            background: linear-gradient(135deg, #8A1538 0%, #5c0d23 100%); 
+            background: #F8FAFC; 
             padding: 3rem 2.5rem; 
             display: flex; 
             flex-direction: column; 
             justify-content: space-between; 
-            color: #ffffff; 
+            color: #000000; 
             position: relative;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(212, 172, 13, 0.15) 0px, transparent 60%),
-                radial-gradient(at 100% 100%, rgba(0, 0, 0, 0.4) 0px, transparent 60%);
+            border-left: 1px solid var(--border);
         }
         .login-brand-panel::before {
             content: '';
             position: absolute;
             inset: 0;
-            background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 0);
+            background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 0);
             background-size: 24px 24px;
             pointer-events: none;
         }
@@ -121,8 +121,8 @@
             gap: 0.75rem;
         }
         .brand-logo-area span {
-            background: linear-gradient(135deg, #D4AC0D, #F1C40F);
-            color: #8A1538;
+            background: #000000;
+            color: #FFFFFF;
             width: 48px;
             height: 48px;
             border-radius: 12px;
@@ -131,19 +131,18 @@
             justify-content: center;
             font-size: 1.6rem;
             font-weight: 800;
-            box-shadow: 0 8px 20px rgba(212, 172, 13, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
         }
         .brand-logo-text h3 {
             font-size: 0.85rem;
             font-weight: 700;
-            color: #fce4ec;
-            opacity: 0.9;
+            color: #555555;
             letter-spacing: 0.5px;
         }
         .brand-logo-text h2 {
             font-size: 1.2rem;
             font-weight: 800;
-            color: #ffffff;
+            color: #000000;
             margin-top: 0.1rem;
         }
         .brand-main-text {
@@ -153,24 +152,24 @@
             font-size: 1.8rem;
             font-weight: 800;
             line-height: 1.4;
-            color: #ffffff;
-            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: #000000;
         }
         .brand-main-text p {
             font-size: 0.95rem;
-            color: #fce4ec;
+            color: #333333;
             margin-top: 0.75rem;
             line-height: 1.6;
-            opacity: 0.95;
+            font-weight: 500;
         }
         .brand-footer-text {
             font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.7);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #555555;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
             padding-top: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-weight: 700;
         }
         .login-form-panel { 
             flex: 1; 
@@ -443,16 +442,16 @@
             <div class="brand-logo-area">
                 <span>📐</span>
                 <div class="brand-logo-text">
-                    <h3>دولة قطر · وزارة التربية والتعليم</h3>
-                    <h2>مدرسة سعيد بن زيد الإعدادية</h2>
+                    <h3>بوابة التقييم والمراجعة</h3>
+                    <h2>رياضيات الصف الثامن</h2>
                 </div>
             </div>
             <div class="brand-main-text">
-                <h1>بوابة التقييم والمراجعة الذكية 🇶🇦</h1>
+                <h1>منصة التقييم والمراجعة الذكية 📐</h1>
                 <p>منصة تفاعلية مخصصة لمراجعة منهج الرياضيات للصف الثامن، تدعم التقييم الذكي والتوجيه الفردي باستخدام الذكاء الاصطناعي الآمن للحفاظ على خصوصيتك.</p>
             </div>
             <div class="brand-footer-text">
-                <span>رؤية قطر الوطنية 2030 🌟</span>
+                <span>بوابة المراجعة التفاعلية 🌟</span>
                 <span>الصف الثامن المتوسط</span>
             </div>
         </div>
