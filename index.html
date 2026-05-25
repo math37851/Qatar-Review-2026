@@ -193,14 +193,89 @@
         }
         
         .form-group { margin-bottom: 1rem; }
-        .form-group label { display:block; margin-bottom:.35rem; font-weight:700; font-size:.85rem; color:var(--text); }
-        .form-group select, .form-group input { width:100%; padding:.75rem 1rem; border:2px solid var(--border); border-radius:.75rem; background:var(--bg); color:var(--text); font-family:inherit; font-size:0.95rem; }
-        .form-group select:focus, .form-group input:focus { outline:none; border-color:#8A1538; }
+        .form-group label { 
+            display: block; 
+            margin-bottom: .4rem; 
+            font-weight: 800; 
+            font-size: .9rem; 
+            color: var(--text); 
+        }
+        .form-group select, .form-group input { 
+            width: 100%; 
+            padding: .8rem 1.1rem; 
+            border: 2px solid rgba(138, 21, 56, 0.25); 
+            border-radius: .75rem; 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: inherit; 
+            font-size: 1rem; 
+            font-weight: 600;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+        }
+        .form-group select:focus, .form-group input:focus { 
+            outline: none; 
+            border-color: #8A1538; 
+            background: var(--card);
+            box-shadow: 0 0 0 4px rgba(138, 21, 56, 0.12);
+        }
+        .form-group input::placeholder {
+            color: #718096 !important;
+            opacity: 0.85 !important;
+        }
+        [data-theme="dark"] .form-group input::placeholder {
+            color: #A0AEC0 !important;
+            opacity: 0.85 !important;
+        }
         
-        .btn-login { width:100%; padding:.9rem; background:#8A1538; color:#fff; border:none; border-radius:.75rem; font-size:1.05rem; font-weight:700; cursor:pointer; font-family:inherit; transition: var(--transition-smooth); }
-        .btn-login:hover { background:#6b0d29; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(138, 21, 56, 0.25); }
-        .btn-login:active { transform: translateY(0); }
-        .login-error { display:none; background:#FEE2E2; color:#991B1B; padding:.6rem 1rem; border-radius:.5rem; margin-top:.75rem; font-size:.9rem; text-align:center; }
+        #student-login-info {
+            background: rgba(138, 21, 56, 0.08) !important;
+            border: 1px solid rgba(138, 21, 56, 0.2) !important;
+            border-right: 5px solid #8A1538 !important;
+            color: #8A1538 !important;
+            font-weight: 700 !important;
+        }
+        [data-theme="dark"] #student-login-info {
+            background: rgba(252, 228, 236, 0.08) !important;
+            border: 1px solid rgba(252, 228, 236, 0.2) !important;
+            border-right: 5px solid #ff80ab !important;
+            color: #ff80ab !important;
+        }
+
+        .btn-login { 
+            width: 100%; 
+            padding: .9rem; 
+            background: #8A1538; 
+            color: #fff; 
+            border: none; 
+            border-radius: .75rem; 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            cursor: pointer; 
+            font-family: inherit; 
+            transition: var(--transition-smooth); 
+            box-shadow: 0 4px 12px rgba(138, 21, 56, 0.2);
+        }
+        .btn-login:hover { 
+            background: #6b0d29; 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 24px rgba(138, 21, 56, 0.35); 
+        }
+        .btn-login:active { 
+            transform: translateY(0); 
+        }
+        .login-error { 
+            display: none; 
+            background: #FEE2E2; 
+            color: #991B1B; 
+            border: 2px solid #FCA5A5; 
+            padding: .75rem 1rem; 
+            border-radius: .5rem; 
+            margin-top: .75rem; 
+            font-size: .95rem; 
+            font-weight: 700;
+            text-align: center; 
+        }
 
         @media (max-width: 800px) {
             .login-container {
