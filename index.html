@@ -88,8 +88,8 @@
         .login-container { 
             display: flex; 
             width: 100%; 
-            max-width: 950px; 
-            height: 580px; 
+            max-width: 1000px; 
+            height: 720px; 
             border-radius: 1.5rem; 
             overflow: hidden; 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); 
@@ -97,9 +97,9 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .login-brand-panel { 
-            flex: 1; 
+            flex: 1.1; 
             background: #F8FAFC; 
-            padding: 3rem 2.5rem; 
+            padding: 2.25rem 2rem; 
             display: flex; 
             flex-direction: column; 
             justify-content: space-between; 
@@ -114,6 +114,57 @@
             background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 0);
             background-size: 24px 24px;
             pointer-events: none;
+        }
+        .login-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            margin: 1.25rem 0;
+        }
+        .login-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #FFFFFF;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.01);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .login-step:hover {
+            transform: translateY(-2px);
+            border-color: rgba(138, 21, 56, 0.25);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
+        }
+        .step-num {
+            background: #8A1538;
+            color: #FFFFFF;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(138, 21, 56, 0.15);
+        }
+        .step-info {
+            text-align: right;
+        }
+        .step-info h4 {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #000000;
+            margin: 0 0 0.15rem 0;
+        }
+        .step-info p {
+            font-size: 0.78rem;
+            color: #4A5568;
+            line-height: 1.4;
+            margin: 0;
         }
         .brand-logo-area {
             display: flex;
@@ -447,8 +498,35 @@
                 </div>
             </div>
             <div class="brand-main-text">
-                <h1>منصة التقييم والمراجعة الذكية 📐</h1>
-                <p>منصة تفاعلية مخصصة لمراجعة منهج الرياضيات للصف الثامن، تدعم التقييم الذكي والتوجيه الفردي باستخدام الذكاء الاصطناعي الآمن للحفاظ على خصوصيتك.</p>
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: #8A1538; margin: 0 0 0.5rem 0;">منصة التقييم والمراجعة الذكية 📐</h1>
+                <p style="font-size: 0.88rem; color: #4A5568; line-height: 1.5; margin: 0 0 1.25rem 0; font-weight: 500;">
+                    منصة تفاعلية مخصصة لمراجعة نهاية الفصل الدراسي الثاني في مادة الرياضيات للصف الثامن، تدعم التقييم الذكي والتوجيه الفردي باستخدام الذكاء الاصطناعي الآمن.
+                </p>
+                
+                <h4 style="font-size: 0.82rem; font-weight: 800; color: #333333; margin: 0 0 0.75rem 0; letter-spacing: 0.5px;">الخطوات داخل المنصة:</h4>
+                <div class="login-steps">
+                    <div class="login-step">
+                        <span class="step-num">١</span>
+                        <div class="step-info">
+                            <h4>التقييم القبلي</h4>
+                            <p>قياس مستواك الأولي قبل البدء في المراجعة بدون إظهار الإجابات الصحيحة.</p>
+                        </div>
+                    </div>
+                    <div class="login-step">
+                        <span class="step-num">٢</span>
+                        <div class="step-info">
+                            <h4>التدريب التفاعلي</h4>
+                            <p>حل 32 سؤالاً تفاعلياً مع شروحات KaTeX الفورية ومساعد الذكاء الاصطناعي الموجه.</p>
+                        </div>
+                    </div>
+                    <div class="login-step">
+                        <span class="step-num">٣</span>
+                        <div class="step-info">
+                            <h4>التقييم البعدي</h4>
+                            <p>اختبار ختامي لقياس مدى تحسن مستواك الدراسي وحساب نسب إتقان الوحدات.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="brand-footer-text">
                 <span>بوابة المراجعة التفاعلية 🌟</span>
