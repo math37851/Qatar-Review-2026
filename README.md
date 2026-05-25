@@ -1,77 +1,68 @@
-# 📐 بوابة التقييم والمراجعة الذكية — رياضيات الصف الثامن
-### Smart Mathematics Assessment & Review Portal (Grade 8)
+# 📐 Smart Mathematics Assessment & Review Portal (Grade 8)
 
-بوابة تعليمية تفاعلية متكاملة مخصصة لمراجعة وتقييم منهج الرياضيات للصف الثامن المتوسط، مبنية بأحدث تقنيات الويب ومتوافقة تماماً مع معايير الأمن السيبراني وحماية خصوصية الطلاب بنسبة 100%.
-
----
-
-## 🌟 الهيكل التنظيمي والتربوي للمنصة (Three-Phase Assessment Model)
-
-تم تصميم المنصة لتطبيق استراتيجية التقييم التربوي ثلاثي المراحل لقياس الأثر التعليمي بدقة:
-
-1. **التقييم القبلي (Pre-Test) 📝:**
-   * اختبار صامت ومحايد مكون من 10 أسئلة اختيار من متعدد (MCQ) يهدف لقياس المستوى القبلي للطالب قبل بدء التدريب.
-   * **أمن ومحايد:** يتم حظر التغذية الراجعة، تلوين الأزرار، الشرح بالخطوات، والمساعد الذكي تماماً في هذه المرحلة لضمان نزاهة النتائج ومصداقيتها.
-
-2. **التدريب التفاعلي الذكي (Interactive Practice - Intervention) 🏋️‍♂️:**
-   * **مرحلة التدخل العلاجي:** 32 مسألة رياضية تفاعلية تغطي محاور (فيثاغورس، الحجوم والمساحات، الإحصاء).
-   * **المساعد الذكي (Responsible AI):** عند الخطأ، يظهر للطالب استراتيجية تفكير مقترحة مع زر تفعيل "المساعد الذكي للرياضيات" لمناقشة خطوات الحل الفردية. المساعد محمي بفلتر أمان متطور يحجب الأحاديث الجانبية ويحصر الحوار في المسألة الحالية.
-
-3. **التقييم البعدي (Post-Test) 🏆:**
-   * اختبار صامت مغلق بنفس معايير وقوانين القبلي، يُفتح **تلقائياً** فقط بعد إتمام حل جميع المسائل الـ 32 في التدريب التفاعلي لقياس نسبة تحسن الطالب وتطور أدائه.
+An interactive, high-fidelity, and secure evaluation and practice portal for Grade 8 Mathematics, specifically engineered to comply with strict cybersecurity guidelines and 100% anonymized student privacy protection.
 
 ---
 
-## 🔒 حماية الخصوصية والأمن السيبراني (Privacy-First Architecture)
+## 🌟 Educational Framework (Three-Phase Assessment Model)
 
-تمت هندسة البوابة بمبدأ **"الخصوصية أولاً" (Privacy by Design)** لحماية بيانات الطلاب الفردية بشكل مطلق:
+The portal implements a structured three-phase pedagogical model designed to accurately measure and enhance learning outcomes:
 
-* **الدخول بالرقم الشخصي القطري (QID):** يمثل اسم المستخدم ورمز الدخول الافتراضي في نفس الوقت لتسهيل الدخول دون الحاجة لتسجيل أي بيانات حساسة.
-* **إخفاء كامل للهوية (Anonymization):** لا يتم طلب، معالجة، أو تخزين أي أسماء، أرقام هواتف، أو إيميلات للطلاب على الإنترنت. يتم تسجيل اسم السجل في قاعدة بيانات Firebase بـ `"طالب"` فقط.
-* **تأمين لوحة التحكم (Teacher Dashboard):** تعرض لوحة المعلم وصادرات الـ CSV الأرقام الشخصية والشعب فقط، مما يتيح للمعلم ربط النتائج بكشوفه الورقية المحلية أوفلاين بكل خصوصية وأمان.
-* **حماية ضد ثغرات XSS:** تمر كافة نصوص المستخدم المعروضة عبر دالة تطهير `escapeHTML()` مع الاعتماد على الخاصية الآمنة `.textContent` لعرض المحادثات.
-* **تشفير كلمات المرور:** تشفير محلي في جهاز الطالب باستخدام خوارزمية **SHA-256** قبل إرسالها أو مطابقتها.
+1. **Pre-Test Phase 📝**:
+   * A silent, neutral 10-question Multiple Choice Question (MCQ) assessment to establish a baseline of the student's mathematical understanding before training.
+   * **Strict Assessment Integrity**: During this phase, all immediate feedbacks, correct/wrong option highlights, step-by-step explanations, mathematical strategies, and the AI chatbot are completely bypassed and disabled to ensure genuine results.
 
----
+2. **Interactive Practice Phase (Intervention) 🏋️‍♂️**:
+   * An active learning session containing 32 interactive geometry, algebra, and statistics questions.
+   * **Responsible AI & Scaffolding**: Students receive instant feedback with option highlights and mathematical strategies. Upon wrong answers, they can activate the **Responsible AI Math Assistant** to discuss solving steps. The bot has strict off-topic keyword filtering to block non-academic queries.
 
-## 🛠️ المميزات التقنية وتصميم الواجهة
-
-* **واجهة عرض عريضة (Landscape split-screen layout):** مستوحاة من الطابع الرسمي الحديث للبوابات التعليمية وتتجاوب تلقائياً مع الشاشات الرأسية للجوالات.
-* **رندرة معادلات رياضية فورية (KaTeX Integration):** رندرة المعادلات الرياضية المعقدة والأسس بجمالية فائقة وسرعة مذهلة من اليسار إلى اليمين (LTR) لسهولة القراءة باللغة العربية.
-* **تقسيم ذكي متجاوب (Responsive 2-Column):** عرض الشريحة الهندسية التوضيحية للسؤال على اليسار، وتفاصيل المسألة والخيارات التفاعلية ومربع المساعد الذكي على اليمين.
+3. **Post-Test Phase 🏆**:
+   * A final silent assessment with the same constraints as the Pre-Test. This phase is dynamically unlocked only after the student has successfully solved all 32 practice questions, allowing precise measurement of the student's growth.
 
 ---
 
-## 📂 هيكل المجلدات والملفات (Folder Structure)
+## 🔒 Privacy & Cybersecurity (Privacy-by-Design)
+
+The platform is designed to guarantee absolute student anonymity and prevent data exposure online:
+
+* **Qatar Personal ID (QID) Login**: Students use their 11-digit QID as both username and password. No signup forms or emails are required.
+* **100% Anonymized Data (GDPR/COPPA Compliant)**: Zero student names, phone numbers, or emails are processed online. Suffix namespaces (`qr8_`) are stored under generic labels (`"طالب"`) in the database.
+* **Secure Teacher Dashboard**: Displays QIDs and Sections (instead of student names), allowing the teacher to privately map online scores to their local offline worksheets. Includes comparison tables, progress meters, and detailed CSV exports.
+* **XSS Defenses**: All dynamic strings are escaped via a custom `escapeHTML()` function, and chatbot messages are rendered natively using `.textContent` to neutralize HTML payload injections.
+* **Password Hashing**: Student passwords are securely hashed client-side utilizing **SHA-256** Web Crypto API before comparison or storage.
+
+---
+
+## 🛠️ Technical Features & Design
+
+* **Premium Split-Screen Landscape Layout**: Drawing inspiration from the modern Qatari Ministry of Education portal, it splits into a side-by-side design on desktop and stacks responsively on mobile.
+* **Instant Math Rendering (KaTeX)**: Standard LaTeX mathematical equations and subscripts are rendered dynamically with LTR layout for ultra-clear visibility.
+* **Responsive 2-Column Workspace**: Displays the question slide image (`SlideX.JPG`) on the left and the question card, options, and AI bot on the right.
+
+---
+
+## 📂 Repository File Structure
 
 ```text
-├── index.html       # ملف الواجهات الرئيسي، ويحتوي على الأنماط البصرية (CSS) والمنطق البرمجي (JS)
-├── data.js          # قاعدة بيانات الأسئلة والخيارات والحلول النموذجية واستراتيجيات التفكير وصناديق الخطأ
-├── roster.js        # قائمة ببيانات الأرقام الشخصية والشعب المصرح لها بالدخول (299 طالباً)
-├── SlideX.JPG       # شرائح العرض التوضيحية والهندسية للأسئلة (Slide1 إلى Slide29)
-└── cybersecurity_review.md  # وثيقة التدقيق الأمني وتوصيات حماية السيرفر
+├── index.html       # Main HTML portal containing premium CSS styles & javascript engine
+├── data.js          # Questions database containing math formulas, strategies, and explanations
+├── roster.js        # Authorized QIDs & sections list for the 299 enrolled students
+├── SlideX.JPG       # Embedded geometry and algebra slide images (Slide1 to Slide29)
+├── LICENSE          # MIT Open Source License
+└── cybersecurity_review.md  # Cybersecurity audit report & database rules
 ```
 
 ---
 
-## 🚀 كيفية التشغيل والرفع للإنتاج (Deployment)
+## 🚀 Deployment Guide
 
-المنصة عبارة عن موقع ويب ساكن (Static Web Application) لا يحتاج إلى سيرفرات تشغيل معقدة، ويمكن رفعها وتشغيلها مجاناً في دقيقة واحدة:
+Since the portal is a static web application, it can be hosted for free in under a minute on any major cloud provider:
 
-1. **التشغيل المحلي (Local Run):**
-   قم بفتح الملف الرئيسي `index.html` في أي متصفح ويب مباشرة، أو استخدم ميزة Live Server في محررات الكود.
-
-2. **الرفع على الإنترنت (Web Hosting):**
-   يمكنك رفع مجلد المشروع بالكامل إلى أي منصة استضافة ساكنة مثل:
-   * **GitHub Pages** (مباشرة عبر ربط مستودع GitHub)
-   * **Vercel**
-   * **Netlify**
-   * **Firebase Hosting**
+1. **Local Run**: Open `index.html` directly in any web browser.
+2. **Web Hosting**: Upload the project folder directly to **GitHub Pages**, **Vercel**, **Netlify**, or **Firebase Hosting**.
 
 ---
 
-## 📊 قاعدة البيانات (Firebase Integrations)
+## 📄 License
 
-تتصل المنصة بقاعدة بيانات Firebase Realtime Database لتخزين نتائج الطلاب ومحاولات التدريب، وسجلات محادثات الذكاء الاصطناعي مع توضيح المحاولات المفلترة (Off-topic requests) لضمان الشفافية وأمن استخدام الذكاء الاصطناعي.
-
-*للاطلاع على قواعد الأمان الخاصة بقاعدة البيانات وحماية المسارات بالتفصيل، يرجى مراجعة ملف [cybersecurity_review.md](cybersecurity_review.md).*
+This project is open-source and licensed under the [MIT License](LICENSE).
