@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "roster": {
+      ".read": "auth != null && auth.token.email === 'q55531996@gmail.com'",
+      ".write": "auth != null && auth.token.email === 'q55531996@gmail.com'",
+      "$sid": {
+        ".read": "auth != null && (auth.token.email === 'q55531996@gmail.com' || auth.token.email === ($sid + '@students.qr8.app'))"
+      }
+    },
+    "students": {
+      ".read": "auth != null && auth.token.email === 'q55531996@gmail.com'",
+      "$sid": {
+        ".read": "auth != null && (auth.token.email === 'q55531996@gmail.com' || auth.token.email === ($sid + '@students.qr8.app'))",
+        ".write": "auth != null && (auth.token.email === 'q55531996@gmail.com' || (auth.token.email === ($sid + '@students.qr8.app') && (data.exists() || root.child('roster').child($sid).exists())))"
+      }
+    }
+  }
+}

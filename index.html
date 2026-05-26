@@ -3,6 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Content Security Policy: قيّد مصادر السكربتات ووجهات الاتصال (دفاع متعدد الطبقات) -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com;
+        font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net data:;
+        img-src 'self' data: https:;
+        connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.firebaseapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://steep-rain-e16f.i3892432848.workers.dev;
+        base-uri 'self';
+        form-action 'self';
+        object-src 'none';
+    ">
     <title>مراجعة الفصل الثاني — رياضيات الصف الثامن</title>
 
     <!-- Firebase -->
@@ -18,7 +30,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="data.js"></script>
-    <script src="roster.js"></script>
+    <!-- roster.js removed: the approved-QID list now lives server-side in Firebase (/roster), readable only by the teacher -->
+
 
     <style>
         /* ============================================================
@@ -1230,11 +1243,11 @@
         <!-- إدارة الطلاب -->
         <div class="dash-panel" id="tab-students">
             <div class="add-student-form">
-                <h3><i class="fa-solid fa-user-plus"></i> إضافة طالب جديد</h3>
+                <h3><i class="fa-solid fa-user-plus"></i> إضافة طالب للقائمة المعتمدة</h3>
+                <p style="color:var(--text-muted);font-size:.85rem;margin:-.5rem 0 1rem">يدخل الطالب لاحقاً برقمه الشخصي فقط، ويُنشأ سجله تلقائياً عند أول دخول.</p>
                 <div class="form-row">
                     <input id="new-class"    type="text"   placeholder="الشعبة (مثال: 08/1)">
-                    <input id="new-username" type="text"   placeholder="الرقم الشخصي (QID)">
-                    <input id="new-password" type="text"   placeholder="رمز الدخول (تلقائياً الرقم الشخصي)">
+                    <input id="new-username" type="text"   placeholder="الرقم الشخصي (QID — 11 رقماً)">
                 </div>
                 <button class="btn-primary" onclick="addStudent()" style="font-size:.9rem;padding:.6rem 1.25rem;">
                     <i class="fa-solid fa-plus"></i> إضافة
@@ -1416,24 +1429,31 @@
 // ═══════════════════════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════════════════════
+// Dedicated Firebase project (qr8-web) — fully isolated from Kangaroo
 const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDyusf9TtzSzZ0GLmKCe2tpus9tFQe6kkM",
-    authDomain: "saeedmath-71a5a.firebaseapp.com",
-    projectId: "saeedmath-71a5a",
-    storageBucket: "saeedmath-71a5a.firebasestorage.app",
-    messagingSenderId: "1057302216500",
-    appId: "1:1057302216500:web:550757a6c9a8d4b9a0af61",
-    databaseURL: "https://saeedmath-71a5a-default-rtdb.firebaseio.com"
+    apiKey: "AIzaSyAUFepBuYcWdZW3fqwZWeEILoguDjBMlcE",
+    authDomain: "qr8-web.firebaseapp.com",
+    projectId: "qr8-web",
+    storageBucket: "qr8-web.firebasestorage.app",
+    messagingSenderId: "140699843312",
+    appId: "1:140699843312:web:eb47ba47db2bc7dd2b2035",
+    databaseURL: "https://qr8-web-default-rtdb.firebaseio.com"
 };
 const ADMIN_EMAIL  = 'q55531996@gmail.com';
 const WORKER_URL   = 'https://steep-rain-e16f.i3892432848.workers.dev/';
 // Firebase rules only allow writes to 'students/' — we prefix 'qr8_' to separate from Kangaroo
 const DB_ROOT      = 'students';
 const QR_NS        = 'qr8_';   // namespace prefix for Qatar Review Grade 8
+// نطاق بريد اصطناعي ثابت وداخلي — لا تُرسَل إليه رسائل إطلاقاً، ولا يُفعَّل التحقق بالبريد.
+// ثابت ومستقل عن المشروع لكي تبقى قواعد Firebase نهائية لا تتغيّر عند تبديل المشروع.
+// كل طالب يحصل على حساب Firebase Auth حقيقي وهوية ثابتة (uid)، مع أن الطالب لا يكتب سوى رقمه الشخصي.
+const STUDENT_EMAIL_DOMAIN = '@students.qr8.app';
+const studentEmail = qid => `${QR_NS}${qid}${STUDENT_EMAIL_DOMAIN}`;   // qr8_<QID>@students.qr8.app
 // Helpers
 const sRef  = u  => db.ref(`${DB_ROOT}/${QR_NS}${u}`);    // single student
 const sPath = u  => `${DB_ROOT}/${QR_NS}${u}`;
 const allRef = () => db.ref(DB_ROOT);
+const rosterRef = qid => db.ref(`roster/${QR_NS}${qid}`); // القائمة المعتمدة (يكتبها المعلم فقط)
 
 // أسئلة التقييم القبلي/البعدي (10 أسئلة اختيار من متعدد)
 const ASSESSMENT_IDS = [
@@ -1486,7 +1506,6 @@ function showLogin(){
 }
 function logout(){
     auth.signOut();
-    localStorage.removeItem('qr_user');
     CURRENT_USER=null;
     location.reload();
 }
@@ -1510,7 +1529,6 @@ function triggerMathRender() {
 
 function loginUserSuccess(user, classSection) {
     CURRENT_USER = user;
-    localStorage.setItem('qr_user', user);
     document.getElementById('login-error').style.display = 'none';
     showApp();
     
@@ -1548,48 +1566,72 @@ async function attemptLogin(){
     // تسجيل دخول الطالب المطور بالرقم الشخصي QID
     err.innerText='جاري التحقق من الرقم الشخصي...'; err.style.display='block';
     
-    // التحقق محلياً في كشوف المدرسة الـ 299 أولاً
-    const student = STUDENT_ROSTER.find(s => s.qid === user);
-    if (!student) {
-        err.innerText = 'الرقم الشخصي غير مسجل في كشوف الصف الثامن المعتمدة.';
+    // ── تسجيل دخول الطالب بالرقم الشخصي (QID) ──
+    // التجربة كما هي: الطالب يكتب رقمه الشخصي. خلف الكواليس يُستخدم حساب Firebase Auth حقيقي
+    // ببريد اصطناعي qr8_<QID>@<project>.firebaseapp.com وكلمة مرور = الرقم الشخصي (هوية ثابتة لكل طالب).
+    const qid = user;
+    if (!/^\d{11}$/.test(qid)) {
+        err.innerText = 'الرقم الشخصي القطري يجب أن يكون 11 رقماً.';
         err.style.display = 'block';
         return;
     }
-
     if (user !== pass) {
         err.innerText = 'الرمز الافتراضي للدخول هو نفسه رقمك الشخصي القطري.';
         err.style.display = 'block';
         return;
     }
 
-    try {
-        await auth.signInAnonymously();
-        const snap = await sRef(user).once('value');
-        const hash = await sha256(pass);
-        if (!snap.exists()) {
-            // المرة الأولى للدخول: إنشاء سجل مجهول الهوية للحفاظ على الخصوصية الكاملة
-            await sRef(user).set({
-                name: "طالب",
-                class: student.section,
-                username: user,
-                passwordHash: hash,
-                preTest: { completed: false, score: 0 },
-                postTest: { completed: false, score: 0 },
-                practice: { totalSolved: 0, correctAnswers: 0, solvedIds: [] }
-            });
-            loginUserSuccess(user, student.section);
-        } else {
-            // مسجل مسبقاً: التحقق من كلمة المرور ومتابعة الجلسة
-            const data = snap.val();
-            if ((data.passwordHash || await sha256(data.password || '')) !== hash) {
-                err.innerText = 'كلمة المرور غير صحيحة.';
-                err.style.display = 'block';
-                return;
-            }
-            loginUserSuccess(user, data.class || student.section);
+    const email = studentEmail(qid);
+
+    // يضمن وجود سجل الطالب ويُرجع شعبته اعتماداً على القائمة المعتمدة في الخادم (/roster)
+    async function ensureStudentRecord() {
+        const snap = await sRef(qid).once('value');
+        if (snap.exists()) return snap.val().class || '—';
+        const rsnap = await rosterRef(qid).once('value');   // القراءة مسموحة لصاحب الرقم فقط بحسب القواعد
+        if (!rsnap.exists()) {
+            try { await auth.currentUser.delete(); } catch(_) { await auth.signOut(); }
+            throw { _notEnrolled: true };
         }
-    } catch(e) {
-        err.innerText = 'خطأ في الاتصال بقاعدة البيانات أو الصلاحيات: ' + e.message;
+        const section = rsnap.val().section || '—';
+        await sRef(qid).set({
+            ownerUid: auth.currentUser.uid,
+            class: section,
+            preTest:  { completed: false, score: 0 },
+            postTest: { completed: false, score: 0 },
+            practice: { totalSolved: 0, correctAnswers: 0, solvedIds: [] }
+        });
+        return section;
+    }
+
+    try {
+        // طالب عائد: تسجيل دخول مباشر
+        await auth.signInWithEmailAndPassword(email, pass);
+        loginUserSuccess(qid, await ensureStudentRecord());
+    } catch (e) {
+        if (e && e._notEnrolled) {
+            err.innerText = 'الرقم الشخصي غير مسجل في كشوف الصف الثامن المعتمدة.';
+            err.style.display = 'block';
+            return;
+        }
+        const code = (e && e.code) || '';
+        // أول دخول: لا حساب بعد (قد يظهر invalid-credential بسبب حماية تعداد البريد)
+        if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+            try {
+                await auth.createUserWithEmailAndPassword(email, pass);
+                loginUserSuccess(qid, await ensureStudentRecord());
+            } catch (e2) {
+                if (e2 && e2._notEnrolled) {
+                    err.innerText = 'الرقم الشخصي غير مسجل في كشوف الصف الثامن المعتمدة.';
+                } else if (e2 && e2.code === 'auth/email-already-in-use') {
+                    err.innerText = 'تعذّر تسجيل الدخول. يرجى التواصل مع المعلم.';
+                } else {
+                    err.innerText = 'تعذّر إنشاء الحساب: ' + ((e2 && e2.message) || '');
+                }
+                err.style.display = 'block';
+            }
+            return;
+        }
+        err.innerText = 'خطأ في الاتصال أو الصلاحيات: ' + ((e && e.message) || '');
         err.style.display = 'block';
     }
 }
@@ -1988,6 +2030,7 @@ async function sendAIMessage(){
     const btn=document.getElementById('ai-send-btn');
     const text=input.value.trim();
     if(!text||AI_STATE.isLoading) return;
+    if(!CURRENT_USER){ return; }   // لا نكتب سجلات قبل اكتمال تسجيل الدخول
     const q=AI_STATE.currentQ;
 
     if(OFF_TOPIC.some(w=>text.toLowerCase().includes(w))){
@@ -2020,9 +2063,10 @@ async function sendAIMessage(){
     document.getElementById('ai-messages').scrollTop=99999;
 
     try{
+        const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : '';
         const res=await fetch(WORKER_URL,{
             method:'POST',
-            headers:{'Content-Type':'application/json'},
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
             body:JSON.stringify({
                 wrongAnswer:STATE.selectedOption||'؟',
                 correctAnswer:q.correct,
@@ -2143,27 +2187,24 @@ function loadStudentsData(){
 }
 
 async function addStudent(){
-    const name="طالب";
     const cls=document.getElementById('new-class').value.trim();
     const user=document.getElementById('new-username').value.trim();
-    let pass=document.getElementById('new-password').value.trim();
     if(!cls||!user){ alert('الرجاء تعبئة الشعبة والرقم الشخصي'); return; }
-    if(!pass) pass = user;
-    const hash=await sha256(pass);
-    sRef(user).set({
-        name,class:cls,username:user,passwordHash:hash
-    }).then(()=>{
+    if(!/^\d{11}$/.test(user)){ alert('الرقم الشخصي يجب أن يكون 11 رقماً'); return; }
+    // نضيف الطالب إلى القائمة المعتمدة فقط (/roster)؛ يُنشأ سجله تلقائياً عند أول دخول له برقمه الشخصي
+    rosterRef(user).set({ section: cls }).then(()=>{
         document.getElementById('add-msg').style.display='block';
         setTimeout(()=>document.getElementById('add-msg').style.display='none',3000);
         document.getElementById('new-class').value='';
         document.getElementById('new-username').value='';
-        document.getElementById('new-password').value='';
+        const np=document.getElementById('new-password'); if(np) np.value='';
     }).catch(e=>alert('خطأ في الحفظ: '+e.message));
 }
 
 function deleteStudent(username){
     if(!confirm(`هل أنت متأكد من حذف الطالب ذو الرقم الشخصي "${username}"؟`)) return;
-    sRef(username).remove();
+    sRef(username).remove();        // حذف سجل النتائج
+    rosterRef(username).remove();   // وإزالته من القائمة المعتمدة (يمنع إعادة إنشاء سجله)
 }
 
 function exportCSV(){
@@ -2247,27 +2288,33 @@ document.getElementById('login-role').addEventListener('change', (e) => {
 
 // AUTH STATE
 // ═══════════════════════════════════════════════════════════════
-auth.onAuthStateChanged(firebaseUser=>{
-    if(firebaseUser&&firebaseUser.email===ADMIN_EMAIL){ showTeacher(); return; }
-    const stored=localStorage.getItem('qr_user');
-    if(stored){
-        CURRENT_USER=stored;
-        auth.signInAnonymously().catch(()=>{});
-        sRef(stored).once('value').then(snap=>{
-            if(snap.exists()){
-                const data=snap.val();
-                const ctrl=document.querySelector('.controls');
-                let lb=ctrl.querySelector('.logout-btn');
-                if(!lb){
-                    lb=document.createElement('button');
-                    lb.className='logout-btn'; lb.onclick=logout;
-                    ctrl.insertBefore(lb,ctrl.firstChild);
-                }
-                lb.innerHTML=`<i class="fa-solid fa-sign-out-alt"></i> خروج (شعبة ${escapeHTML(data.class || '')})`;
+auth.onAuthStateChanged(async firebaseUser=>{
+    if(!firebaseUser){ showLogin(); return; }
+    const email = firebaseUser.email || '';
+    // المعلم
+    if(email === ADMIN_EMAIL){ showTeacher(); return; }
+    // الطالب: نستخرج الرقم الشخصي من البريد الاصطناعي qr8_<QID>@<project>.firebaseapp.com
+    if(email.startsWith(QR_NS) && email.endsWith(STUDENT_EMAIL_DOMAIN)){
+        const qid = email.slice(QR_NS.length, email.length - STUDENT_EMAIL_DOMAIN.length);
+        CURRENT_USER = qid;
+        try{
+            const snap = await sRef(qid).once('value');
+            const section = snap.exists() ? (snap.val().class || '') : '';
+            const ctrl=document.querySelector('.controls');
+            let lb=ctrl.querySelector('.logout-btn');
+            if(!lb){
+                lb=document.createElement('button');
+                lb.className='logout-btn'; lb.onclick=logout;
+                ctrl.insertBefore(lb,ctrl.firstChild);
             }
-            showApp();
-        }).catch(()=>showLogin());
-    } else { showLogin(); }
+            lb.innerHTML=`<i class="fa-solid fa-sign-out-alt"></i> خروج (شعبة ${escapeHTML(section)})`;
+        }catch(_){}
+        showApp();
+        return;
+    }
+    // جلسة غير معروفة (مثل حساب مجهول قديم) — نظّف الحالة وأعد لشاشة الدخول
+    auth.signOut();
+    showLogin();
 });
 </script>
 </body>

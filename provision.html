@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أداة تجهيز القائمة المعتمدة (تُستخدم مرة واحدة محلياً)</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<!-- ملف خاص يحتوي الأرقام الشخصية + الشُعب (مُستبعَد من Git عبر .gitignore) -->
+<script src="roster.private.js"></script>
+<style>
+  body{font-family:system-ui,'Segoe UI',sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;background:#faf7f8;color:#1a1216;line-height:1.7}
+  h1{font-size:1.4rem;color:#8A1538}
+  .warn{background:#fff3cd;border:1px solid #ffe08a;padding:1rem;border-radius:.6rem;margin:1rem 0}
+  .card{background:#fff;border:1px solid #eee;border-radius:.8rem;padding:1.25rem;margin:1rem 0;box-shadow:0 6px 20px rgba(0,0,0,.04)}
+  input,button{font:inherit;padding:.6rem .9rem;border-radius:.5rem;border:1px solid #ccc}
+  button{background:#8A1538;color:#fff;border:none;cursor:pointer;font-weight:700}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  #log{white-space:pre-wrap;background:#0d0d0d;color:#9ef39e;padding:1rem;border-radius:.6rem;height:260px;overflow:auto;font-family:monospace;font-size:.85rem}
+  .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.5rem 0}
+</style>
+</head>
+<body>
+<h1>📋 أداة تجهيز القائمة المعتمدة في Firebase (/roster)</h1>
+<div class="warn">
+  <strong>تعليمات:</strong> هذه أداة تُشغَّل <u>مرة واحدة محلياً</u> على جهازك. لا تنشرها ولا ترفعها إلى GitHub.
+  تتطلب: (1) نشر قواعد <code>database.rules.json</code> أولاً، (2) تفعيل مزوّد Email/Password، (3) وجود ملف <code>roster.private.js</code> بجانبها.
+  تقوم بكتابة كل رقم شخصي وشعبته إلى <code>/roster/qr8_&lt;QID&gt;</code> (يقرؤها المعلم فقط بحسب القواعد).
+</div>
+
+<div class="card">
+  <h3>1) تسجيل دخول المعلم</h3>
+  <div class="row">
+    <input id="email" type="email" placeholder="بريد المعلم" size="28">
+    <input id="pass" type="password" placeholder="كلمة المرور" size="20">
+    <button id="btn-login">دخول</button>
+    <span id="auth-state">غير مسجّل</span>
+  </div>
+</div>
+
+<div class="card">
+  <h3>2) تجهيز القائمة</h3>
+  <p>عدد الأرقام في <code>roster.private.js</code>: <strong id="count">—</strong></p>
+  <div class="row">
+    <button id="btn-provision" disabled>كتابة القائمة إلى /roster</button>
+    <button id="btn-verify" disabled>تحقّق من العدد المكتوب</button>
+  </div>
+</div>
+
+<div id="log"></div>
+
+<script>
+// Dedicated Firebase project (qr8-web) — same values as index.html
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAUFepBuYcWdZW3fqwZWeEILoguDjBMlcE",
+  authDomain: "qr8-web.firebaseapp.com",
+  projectId: "qr8-web",
+  databaseURL: "https://qr8-web-default-rtdb.firebaseio.com"
+};
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.database();
+const QR_NS = 'qr8_';
+const log = m => { const el=document.getElementById('log'); el.textContent += m + "\n"; el.scrollTop=el.scrollHeight; };
+
+const roster = (typeof STUDENT_ROSTER !== 'undefined') ? STUDENT_ROSTER : [];
+document.getElementById('count').textContent = roster.length;
+if (!roster.length) log('⚠️ لم يتم العثور على STUDENT_ROSTER — تأكد من وجود ملف roster.private.js بجانب هذه الصفحة.');
+
+auth.onAuthStateChanged(u => {
+  const ok = u && u.email;
+  document.getElementById('auth-state').textContent = ok ? ('مسجّل: ' + u.email) : 'غير مسجّل';
+  document.getElementById('btn-provision').disabled = !ok || !roster.length;
+  document.getElementById('btn-verify').disabled = !ok;
+});
+
+document.getElementById('btn-login').onclick = async () => {
+  try {
+    await auth.signInWithEmailAndPassword(document.getElementById('email').value.trim(), document.getElementById('pass').value);
+    log('✓ تم تسجيل الدخول.');
+  } catch(e) { log('✗ فشل الدخول: ' + e.message); }
+};
+
+document.getElementById('btn-provision').onclick = async () => {
+  document.getElementById('btn-provision').disabled = true;
+  log(`بدء كتابة ${roster.length} رقماً...`);
+  let ok = 0, fail = 0;
+  for (const s of roster) {
+    const qid = String(s.qid).trim();
+    if (!/^\d{11}$/.test(qid)) { log('تخطّي رقم غير صالح: ' + qid); fail++; continue; }
+    try {
+      await db.ref('roster/' + QR_NS + qid).set({ section: s.section || '—' });
+      ok++;
+      if (ok % 25 === 0) log(`... ${ok} مكتمل`);
+    } catch(e) { log('✗ فشل ' + qid + ': ' + e.message); fail++; }
+  }
+  log(`انتهى ✓ نجح: ${ok} | فشل: ${fail}`);
+  document.getElementById('btn-provision').disabled = false;
+};
+
+document.getElementById('btn-verify').onclick = async () => {
+  try {
+    const snap = await db.ref('roster').once('value');
+    let n = 0; snap.forEach(c => { if (c.key.startsWith(QR_NS)) n++; });
+    log(`عدد الأرقام المكتوبة حالياً في /roster: ${n}`);
+  } catch(e) { log('✗ تعذّر القراءة: ' + e.message); }
+};
+</script>
+</body>
+</html>
