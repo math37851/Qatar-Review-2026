@@ -47,6 +47,8 @@
             --border:       #E2E8F0;
             --shadow:       0 4px 6px -1px rgba(0,0,0,.1);
             --shadow-hover: 0 10px 15px -3px rgba(0,0,0,.15);
+            --ease-out:     cubic-bezier(0.23, 1, 0.32, 1);
+            --transition-smooth: transform 160ms var(--ease-out), background-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out), border-color 160ms var(--ease-out);
         }
         [data-theme="dark"] {
             --bg:         #0F172A;
@@ -309,13 +311,8 @@
             transition: var(--transition-smooth); 
             box-shadow: 0 4px 12px rgba(138, 21, 56, 0.2);
         }
-        .btn-login:hover { 
-            background: #6b0d29; 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 24px rgba(138, 21, 56, 0.35); 
-        }
         .btn-login:active { 
-            transform: translateY(0); 
+            transform: translateY(0) scale(0.97); 
         }
         .login-error { 
             display: none; 
@@ -359,6 +356,29 @@
             }
         }
 
+        /* ── Touchscreen Hover Protections ── */
+        @media (hover: hover) and (pointer: fine) {
+            .btn-login:hover { 
+                background: #6b0d29; 
+                transform: translateY(-2px); 
+                box-shadow: 0 8px 24px rgba(138, 21, 56, 0.35); 
+            }
+            .mode-card:hover { 
+                transform: translateY(-4px); 
+                box-shadow: var(--shadow-hover); 
+            }
+            .option-btn:hover:not(:disabled) { 
+                border-color: var(--primary); 
+                background: rgba(26,82,118,.06); 
+            }
+            .btn-primary:hover:not(:disabled) { 
+                background: var(--primary-dark); 
+            }
+            .btn-secondary:hover { 
+                background: var(--border); 
+            }
+        }
+
         /* ── Home ── */
         .hero { text-align:center; margin-bottom:2rem; }
         .hero h1 { font-size:2rem; font-weight:800; background:linear-gradient(135deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:.5rem; }
@@ -370,8 +390,8 @@
         .stat-chip span { font-size:.8rem; color:var(--text-muted); }
 
         .modes-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; margin-bottom:2rem; }
-        .mode-card { background:var(--card); border-radius:1.25rem; padding:2rem; text-align:center; cursor:pointer; box-shadow:var(--shadow); border:3px solid transparent; transition:all .25s; position:relative; overflow:hidden; }
-        .mode-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-hover); }
+        .mode-card { background:var(--card); border-radius:1.25rem; padding:2rem; text-align:center; cursor:pointer; box-shadow:var(--shadow); border:3px solid transparent; transition: transform 180ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out); position:relative; overflow:hidden; }
+        .mode-card:not(.locked):active { transform: translateY(-2px) scale(0.97); }
         .mode-card.pre  { border-color:#1A5276; }
         .mode-card.prac { border-color:#1E8449; }
         .mode-card.post { border-color:#7D3C98; }
@@ -407,8 +427,8 @@
         .q-meta { font-size:.85rem; color:var(--text-muted); margin-bottom:1rem; display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; }
 
         .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:1.5rem; }
-        .option-btn { background:var(--card); border:2px solid var(--border); padding:1rem 1.25rem; border-radius:.75rem; font-size:1.05rem; font-weight:600; color:var(--text); cursor:pointer; text-align:right; transition:all .2s; font-family:inherit; line-height:1.5; }
-        .option-btn:hover:not(:disabled) { border-color:var(--primary); background:rgba(26,82,118,.06); }
+        .option-btn { background:var(--card); border:2px solid var(--border); padding:1rem 1.25rem; border-radius:.75rem; font-size:1.05rem; font-weight:600; color:var(--text); cursor:pointer; text-align:right; transition: transform 120ms var(--ease-out), border-color 160ms var(--ease-out), background-color 160ms var(--ease-out), color 160ms var(--ease-out); font-family:inherit; line-height:1.5; }
+        .option-btn:not(:disabled):active { transform: scale(0.98); }
         .option-btn.selected { border-color:var(--primary); background:rgba(26,82,118,.12); }
         .option-btn.correct { border-color:var(--correct); background:rgba(30,132,73,.1); color:var(--correct); }
         .option-btn.wrong   { border-color:var(--wrong);   background:rgba(192,57,43,.1);  color:var(--wrong);   }
@@ -418,11 +438,11 @@
         .open-answer:focus { outline:none; border-color:var(--primary); }
 
         .action-bar { display:flex; justify-content:flex-end; gap:.75rem; margin-bottom:1.5rem; }
-        .btn-primary { background:var(--primary); color:#fff; border:none; padding:.75rem 1.75rem; border-radius:.75rem; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:.5rem; }
-        .btn-primary:hover:not(:disabled) { background:var(--primary-dark); }
+        .btn-primary { background:var(--primary); color:#fff; border:none; padding:.75rem 1.75rem; border-radius:.75rem; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:.5rem; transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+        .btn-primary:not(:disabled):active { transform: scale(0.97); }
         .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
-        .btn-secondary { background:var(--card); color:var(--text); border:2px solid var(--border); padding:.75rem 1.5rem; border-radius:.75rem; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; }
-        .btn-secondary:hover { background:var(--border); }
+        .btn-secondary { background:var(--card); color:var(--text); border:2px solid var(--border); padding:.75rem 1.5rem; border-radius:.75rem; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; transition: transform 160ms var(--ease-out), background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+        .btn-secondary:active { transform: scale(0.97); }
         .btn-danger { background:#C0392B; color:#fff; border:none; padding:.6rem 1.25rem; border-radius:.75rem; font-size:.9rem; font-weight:700; cursor:pointer; font-family:inherit; }
 
         /* ── Feedback ── */
