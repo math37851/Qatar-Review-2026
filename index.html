@@ -40,22 +40,22 @@
             --purple:       #7D3C98;
             --correct:      #1E8449;
             --wrong:        #C0392B;
-            --bg:           #F0F4F8;
-            --card:         #FFFFFF;
-            --text:         #1A202C;
-            --text-muted:   #718096;
-            --border:       #E2E8F0;
-            --shadow:       0 4px 6px -1px rgba(0,0,0,.1);
-            --shadow-hover: 0 10px 15px -3px rgba(0,0,0,.15);
+            --bg:           hsl(340, 10%, 96.5%); /* Premium warm tinted background */
+            --card:         hsl(340, 15%, 99.5%); /* Elegant burgundy-tinted off-white card */
+            --text:         hsl(340, 12%, 15%);    /* Soft burgundy dark charcoal text */
+            --text-muted:   hsl(340, 8%, 45%);
+            --border:       rgba(138, 21, 56, 0.1); /* Burgundy-tinted soft borders */
+            --shadow:       0 4px 6px -1px rgba(138, 21, 56, 0.04), 0 2px 4px -1px rgba(138, 21, 56, 0.02);
+            --shadow-hover: 0 10px 15px -3px rgba(138, 21, 56, 0.06);
             --ease-out:     cubic-bezier(0.23, 1, 0.32, 1);
             --transition-smooth: transform 160ms var(--ease-out), background-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out), border-color 160ms var(--ease-out);
         }
         [data-theme="dark"] {
-            --bg:         #0F172A;
-            --card:       #1E293B;
-            --text:       #F1F5F9;
-            --text-muted: #94A3B8;
-            --border:     #334155;
+            --bg:         hsl(340, 15%, 7%);     /* Very rich, warm dark slate */
+            --card:       hsl(340, 12%, 12%);    /* Deep warm charcoal-burgundy card */
+            --text:       hsl(340, 10%, 94%);    /* Readably warm white text */
+            --text-muted: hsl(340, 8%, 65%);
+            --border:     rgba(255, 128, 171, 0.15); /* Light rose-tinted border */
         }
         * { margin:0; padding:0; box-sizing:border-box; font-family:'Tajawal',sans-serif; transition:background-color .3s,color .3s; }
         body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
@@ -78,7 +78,7 @@
         #login-overlay { 
             position: fixed; 
             inset: 0; 
-            background: rgba(15, 23, 42, 0.95); 
+            background: rgba(18, 10, 12, 0.96); /* Dark burgundy tinted off-black */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             display: flex; 
@@ -98,17 +98,17 @@
             overflow: hidden; 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); 
             background: var(--card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
         }
         .login-brand-panel { 
             flex: 1.1; 
-            background: #F8FAFC; 
+            background: hsl(340, 20%, 98%); /* Soft off-white with warm burgundy tint */
             padding: 2.25rem 2rem; 
             display: flex; 
             flex-direction: column; 
             justify-content: flex-start; 
             gap: 1.5rem;
-            color: #000000; 
+            color: hsl(340, 25%, 10%); /* Deep charcoal with a touch of rich burgundy */
             position: relative;
             border-left: 1px solid var(--border);
         }
@@ -130,12 +130,12 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            background: #FFFFFF;
+            background: hsl(340, 20%, 99.5%);
             padding: 0.75rem 1rem;
             border-radius: 1rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.01);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(138, 21, 56, 0.08);
+            box-shadow: 0 4px 6px rgba(138, 21, 56, 0.01);
+            transition: transform 200ms var(--ease-out), border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
         }
         .login-step:hover {
             transform: translateY(-2px);
@@ -284,16 +284,14 @@
         }
         
         #student-login-info {
-            background: rgba(138, 21, 56, 0.08) !important;
-            border: 1px solid rgba(138, 21, 56, 0.2) !important;
-            border-right: 5px solid #8A1538 !important;
+            background: rgba(138, 21, 56, 0.04) !important;
+            border: 1px solid rgba(138, 21, 56, 0.25) !important;
             color: #8A1538 !important;
             font-weight: 700 !important;
         }
         [data-theme="dark"] #student-login-info {
-            background: rgba(252, 228, 236, 0.08) !important;
-            border: 1px solid rgba(252, 228, 236, 0.2) !important;
-            border-right: 5px solid #ff80ab !important;
+            background: rgba(252, 228, 236, 0.04) !important;
+            border: 1px solid rgba(252, 228, 236, 0.25) !important;
             color: #ff80ab !important;
         }
 
@@ -573,7 +571,7 @@
                     <option value="teacher">معلم</option>
                 </select>
             </div>
-            <div id="student-login-info" style="background:rgba(138,21,56,0.06); padding:0.75rem 1rem; border-radius:0.75rem; border-right:4px solid #8A1538; margin-bottom:1.25rem; font-size:0.85rem; line-height:1.5; color:var(--text);">
+            <div id="student-login-info" style="padding:0.75rem 1rem; border-radius:0.75rem; margin-bottom:1.25rem; font-size:0.85rem; line-height:1.5;">
                 💡 <strong>ملاحظة هامة للطلاب:</strong><br>
                 يتم الدخول بالرقم الشخصي القطري (QID) المكون من 11 رقماً كاسم مستخدم وكلمة مرور في نفس الوقت.
             </div>
