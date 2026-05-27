@@ -807,7 +807,7 @@
             font-weight: 700;
         }
  
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.75rem; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.75rem; direction: ltr; }
         @media (max-width: 600px) {
             .options-grid { grid-template-columns: 1fr; }
         }
@@ -818,10 +818,11 @@
             border-radius: 1.25rem; 
             font-size: 1.05rem; 
             font-weight: 600; 
-            color: var(--text); 
-            cursor: pointer; 
-            text-align: right; 
-            transition: var(--transition-spring); 
+            color: var(--text);
+            cursor: pointer;
+            direction: rtl;
+            text-align: right;
+            transition: var(--transition-spring);
             font-family: inherit; 
             line-height: 1.5; 
             box-shadow: 0 4px 10px rgba(138, 21, 56, 0.01);
@@ -1487,6 +1488,10 @@ function escapeHTML(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;'
 // يضيف مسافة بين الرقم ووحدته ويعزلها LTR كي تظهر "13 cm" لا "cm 13" (لنصوص الأسئلة والخيارات في سياق RTL).
 // قائمة وحدات محددة حتى لا تُلمس المتغيرات مثل b أو الكلمات.
 function formatDims(html){ return String(html??'').replace(/(\d+(?:[.,]\d+)?)\s*(cm³|cm²|cm|mm|km|m³|m²|kg|mL|L|m|g|s)(?![A-Za-z])/g, '<span class="ltr-unit">$1 $2</span>'); }
+// نسّق نصّ الخيار: اعزل ترميز البداية "A)" كجزيرة LTR (كي لا ينعكس القوس في RTL) ثم نسّق الوحدات.
+function formatOption(text){ return formatDims(text).replace(/^\s*([A-Za-z])\)/, '<span class="ltr-unit">$1)</span>'); }
+// اعزل ترميز حرف الخيار "D)" كجزيرة LTR (للاستخدام داخل نصوص التغذية الراجعة).
+function optLabel(letter){ return `<span class="ltr-unit">${letter})</span>`; }
 async function sha256(str){ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
 
 function showView(id){
@@ -1804,7 +1809,7 @@ function loadQuestion(){
     if(isMCQ && q.options?.length){
         ['A','B','C','D'].forEach((l,i)=>{
             const btn=document.getElementById('opt-'+l);
-            btn.innerHTML=formatDims(q.options[i]||l);
+            btn.innerHTML=formatOption(q.options[i]||l);
             btn.classList.remove('selected','correct','wrong');
             btn.disabled=false;
         });
@@ -1893,10 +1898,10 @@ function checkAnswer(timeout=false){
         fireConfetti(15);
     } else if(timeout){
         fb.className='feedback-box wrong-msg';
-        fb.innerHTML=`<h3><i class="fa-solid fa-clock"></i> انتهى الوقت!</h3><p>الإجابة الصحيحة: <strong>${correctLetter}) ${formatDims(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${q.explanation}</p>`;
+        fb.innerHTML=`<h3><i class="fa-solid fa-clock"></i> انتهى الوقت!</h3><p>الإجابة الصحيحة: <strong>${optLabel(correctLetter)} ${formatDims(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${q.explanation}</p>`;
     } else {
         fb.className='feedback-box wrong-msg';
-        fb.innerHTML=`<h3><i class="fa-solid fa-times-circle"></i> إجابة غير صحيحة</h3><p>اخترت: <strong>${formatDims(STATE.selectedOption||'—')}</strong><br>الإجابة الصحيحة: <strong>${correctLetter}) ${formatDims(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${q.explanation}</p>`;
+        fb.innerHTML=`<h3><i class="fa-solid fa-times-circle"></i> إجابة غير صحيحة</h3><p>اخترت: <strong>${formatOption(STATE.selectedOption||'—')}</strong><br>الإجابة الصحيحة: <strong>${optLabel(correctLetter)} ${formatDims(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${q.explanation}</p>`;
         if(STATE.mode==='practice'){
             document.getElementById('ai-chat-btn').style.display='block';
         }
