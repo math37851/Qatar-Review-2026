@@ -2467,7 +2467,10 @@ function loadStudentsData(){
             tbody.innerHTML+=`
             <tr>
                 <td><strong>طالب مجهول الهوية</strong><br><small style="color:var(--text-muted)">الرقم الشخصي: ${escapeHTML(username)}</small></td>
-                <td>${escapeHTML(d.class||'—')}</td>
+                <td>
+                    ${escapeHTML(d.class||'—')}
+                    ${(!d.class||d.class==='—')?`<button class="action-btn-sm" style="margin-right:.4rem;font-size:.7rem;padding:.2rem .5rem" onclick="fixStudentClass('${escapeHTML(username)}')">✏️ تصحيح</button>`:''}
+                </td>
                 <td>
                     ${pre?'<span style="color:#1E8449">✓ قبلي</span>':''}
                     ${post?'<span style="color:#7D3C98"> ✓ بعدي</span>':''}
@@ -2487,20 +2490,45 @@ async function addStudent(){
     const user=document.getElementById('new-username').value.trim();
     if(!cls||!user){ alert('الرجاء تعبئة الشعبة والرقم الشخصي'); return; }
     if(!/^\d{11}$/.test(user)){ alert('الرقم الشخصي يجب أن يكون 11 رقماً'); return; }
-    // نضيف الطالب إلى القائمة المعتمدة فقط (/roster)؛ يُنشأ سجله تلقائياً عند أول دخول له برقمه الشخصي
-    rosterRef(user).set({ section: cls }).then(()=>{
+
+    try {
+        // 1) أضف إلى القائمة المعتمدة
+        await rosterRef(user).set({ section: cls });
+
+        // 2) أنشئ أو حدّث سجل الطالب في /students بالشعبة الصحيحة فوراً
+        //    (إن كان موجوداً: حدّث الشعبة فقط — إن لم يكن: أنشئه بالبيانات الأولية)
+        const snap = await sRef(user).once('value');
+        if (snap.exists()) {
+            await sRef(user).child('class').set(cls);
+        } else {
+            await sRef(user).set({
+                class: cls,
+                preTest:  { completed: false, score: 0 },
+                postTest: { completed: false, score: 0 },
+                practice: { totalSolved: 0, correctAnswers: 0, solvedIds: [] }
+            });
+        }
+
         document.getElementById('add-msg').style.display='block';
         setTimeout(()=>document.getElementById('add-msg').style.display='none',3000);
         document.getElementById('new-class').value='';
         document.getElementById('new-username').value='';
         const np=document.getElementById('new-password'); if(np) np.value='';
-    }).catch(e=>alert('خطأ في الحفظ: '+e.message));
+    } catch(e) { alert('خطأ في الحفظ: '+e.message); }
 }
 
 function deleteStudent(username){
     if(!confirm(`هل أنت متأكد من حذف الطالب ذو الرقم الشخصي "${username}"؟`)) return;
-    sRef(username).remove();        // حذف سجل النتائج
-    rosterRef(username).remove();   // وإزالته من القائمة المعتمدة (يمنع إعادة إنشاء سجله)
+    sRef(username).remove();
+    rosterRef(username).remove();
+}
+
+function fixStudentClass(username){
+    const cls = prompt(`أدخل الشعبة الصحيحة للطالب ${username}:`);
+    if(!cls || !cls.trim()) return;
+    sRef(username).child('class').set(cls.trim())
+        .then(()=>{ rosterRef(username).child('section').set(cls.trim()); })
+        .catch(e=>alert('خطأ: '+e.message));
 }
 
 function exportCSV(){
