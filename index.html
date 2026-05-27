@@ -1108,6 +1108,16 @@
         .students-table tr:last-child td { border-bottom: none; }
         .students-table tr:hover td { background: rgba(138, 21, 56, 0.02); }
         .improvement-up   { color: var(--green); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+        /* ── Analytics Cards ───────────────────────────────────── */
+        .analytics-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .analytics-card  { background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; padding: 1.25rem 1rem; text-align: center; box-shadow: var(--shadow); }
+        .analytics-card .ac-val { display: block; font-size: 2rem; font-weight: 900; color: var(--primary); line-height: 1; }
+        .analytics-card .ac-lbl { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem; }
+        .analytics-card.green .ac-val { color: var(--green); }
+        .analytics-card.purple .ac-val { color: var(--purple); }
+        .analytics-export { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+        /* ── end Analytics Cards ────────────────────────────────── */
         .improvement-same { color: var(--text-muted); font-variant-numeric: tabular-nums; }
         .improvement-down { color: var(--wrong); font-weight: 800; font-variant-numeric: tabular-nums; }
  
@@ -1221,6 +1231,7 @@
         <div class="dash-tabs">
             <button class="dash-tab active" onclick="switchTab('tab-results')">نتائج التقييم</button>
             <button class="dash-tab" onclick="switchTab('tab-students')">إدارة الطلاب</button>
+            <button class="dash-tab" onclick="switchTab('tab-analytics')">📊 الإحصاءات</button>
         </div>
 
         <!-- نتائج التقييم -->
@@ -1281,6 +1292,62 @@
             </table>
             </div>
         </div>
+
+        <!-- ── Analytics ──────────────────────────────────────── -->
+        <div class="dash-panel" id="tab-analytics">
+
+            <!-- بطاقات الإحصاء السريع -->
+            <div class="analytics-cards">
+                <div class="analytics-card">
+                    <span class="ac-val" id="ac-students">—</span>
+                    <span class="ac-lbl">إجمالي الطلاب</span>
+                </div>
+                <div class="analytics-card green">
+                    <span class="ac-val" id="ac-active">—</span>
+                    <span class="ac-lbl">نشطون اليوم</span>
+                </div>
+                <div class="analytics-card purple">
+                    <span class="ac-val" id="ac-ai">—</span>
+                    <span class="ac-lbl">أسئلة AI</span>
+                </div>
+                <div class="analytics-card">
+                    <span class="ac-val" id="ac-practice">—</span>
+                    <span class="ac-lbl">مسائل تدريبية</span>
+                </div>
+                <div class="analytics-card green">
+                    <span class="ac-val" id="ac-duration">—</span>
+                    <span class="ac-lbl">متوسط الجلسة</span>
+                </div>
+                <div class="analytics-card purple">
+                    <span class="ac-val" id="ac-sessions">—</span>
+                    <span class="ac-lbl">إجمالي الجلسات</span>
+                </div>
+            </div>
+
+            <!-- توزيع الوحدات -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;">
+                <h3 style="color:var(--primary)">📚 استخدام المنصة حسب الوحدة</h3>
+                <button class="btn-primary" onclick="exportAnalyticsCSV()" style="font-size:.85rem;padding:.5rem 1rem;">
+                    <i class="fa-solid fa-file-csv"></i> تصدير للبحث
+                </button>
+            </div>
+            <div style="overflow-x:auto;">
+            <table class="students-table">
+                <thead>
+                    <tr>
+                        <th>الوحدة</th>
+                        <th>أسئلة المساعد AI</th>
+                        <th>مسائل التدريب</th>
+                        <th>دقة الإجابات</th>
+                    </tr>
+                </thead>
+                <tbody id="unit-stats-tbody">
+                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+            </div>
+
+        </div><!-- /tab-analytics -->
 
     </div>
 </div>
@@ -1514,6 +1581,7 @@ function showTeacher(){
     document.getElementById('teacher-dashboard').style.display='flex';
     loadResultsData();
     loadStudentsData();
+    loadAnalyticsData();
 }
 function showLogin(){
     document.getElementById('login-overlay').style.display='flex';
@@ -1522,6 +1590,7 @@ function showLogin(){
     document.getElementById('teacher-dashboard').style.display='none';
 }
 function logout(){
+    analyticsEndSession();
     auth.signOut();
     CURRENT_USER=null;
     location.reload();
@@ -1546,6 +1615,7 @@ function triggerMathRender() {
 
 function loginUserSuccess(user, classSection) {
     CURRENT_USER = user;
+    analyticsStartSession(user);
     document.getElementById('login-error').style.display = 'none';
     showApp();
     
@@ -2003,6 +2073,7 @@ function endSession(){
 // ═══════════════════════════════════════════════════════════════
 function savePracticeAnswer(q,isCorrect){
     if(!CURRENT_USER||STATE.mode!=='practice') return;
+    analyticsTrackPractice(q.unit, isCorrect);
     const ref=sRef(CURRENT_USER).child('practice');
     ref.once('value').then(snap=>{
         const d=snap.val()||{totalSolved:0,correctAnswers:0,solvedIds:[]};
@@ -2137,6 +2208,7 @@ async function sendAIMessage(){
                 aiReply: reply,
                 isOffTopic: false
             });
+            analyticsTrackAI(q.unit);
         }
     }catch(e){
         document.getElementById('ai-typing')?.remove();
@@ -2150,12 +2222,188 @@ async function sendAIMessage(){
 }
 
 // ═══════════════════════════════════════════════════════════════
+// ANALYTICS — تتبع الجلسات والاستخدام
+// ═══════════════════════════════════════════════════════════════
+const ANALYTICS = { sessionRef: null, sessionStart: null, aiCount: 0, practiceCount: 0 };
+
+function analyticsStartSession(uid) {
+    try {
+        if (ANALYTICS.sessionRef) analyticsEndSession(); // أنهِ الجلسة السابقة إن وُجدت
+        ANALYTICS.sessionStart = Date.now();
+        ANALYTICS.aiCount = 0;
+        ANALYTICS.practiceCount = 0;
+        const today = new Date().toISOString().slice(0, 10);
+        const sessionKey = Date.now().toString();
+        ANALYTICS.sessionRef = sRef(uid).child(`sessions/${sessionKey}`);
+        ANALYTICS.sessionRef.set({
+            startTime: new Date().toISOString(),
+            date: today,
+            endTime: null,
+            duration: 0,
+            aiQuestions: 0,
+            practiceAnswers: 0
+        }).catch(() => {});
+        sRef(uid).child('lastActive').set(new Date().toISOString()).catch(() => {});
+    } catch(e) {}
+}
+
+function analyticsEndSession() {
+    try {
+        if (!ANALYTICS.sessionRef || !ANALYTICS.sessionStart) return;
+        const dur = Math.round((Date.now() - ANALYTICS.sessionStart) / 1000);
+        ANALYTICS.sessionRef.update({
+            endTime: new Date().toISOString(),
+            duration: dur,
+            aiQuestions: ANALYTICS.aiCount,
+            practiceAnswers: ANALYTICS.practiceCount
+        }).catch(() => {});
+        ANALYTICS.sessionRef = null;
+        ANALYTICS.sessionStart = null;
+    } catch(e) {}
+}
+
+function analyticsTrackAI(unit) {
+    try {
+        if (!CURRENT_USER) return;
+        ANALYTICS.aiCount++;
+        if (ANALYTICS.sessionRef) ANALYTICS.sessionRef.child('aiQuestions').set(ANALYTICS.aiCount).catch(() => {});
+        const u = String(unit);
+        sRef(CURRENT_USER).child(`unitStats/${u}/aiQuestions`).transaction(v => (v || 0) + 1);
+    } catch(e) {}
+}
+
+function analyticsTrackPractice(unit, isCorrect) {
+    try {
+        if (!CURRENT_USER) return;
+        ANALYTICS.practiceCount++;
+        if (ANALYTICS.sessionRef) ANALYTICS.sessionRef.child('practiceAnswers').set(ANALYTICS.practiceCount).catch(() => {});
+        const u = String(unit);
+        sRef(CURRENT_USER).child(`unitStats/${u}/practiceAnswers`).transaction(v => (v || 0) + 1);
+        if (isCorrect) sRef(CURRENT_USER).child(`unitStats/${u}/correctAnswers`).transaction(v => (v || 0) + 1);
+    } catch(e) {}
+}
+
+// ─── لوحة Analytics في واجهة المعلم ────────────────────────────
+function loadAnalyticsData() {
+    allRef().on('value', snap => {
+        if (!snap.exists()) {
+            ['ac-students','ac-active','ac-ai','ac-practice','ac-duration','ac-sessions'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '0';
+            });
+            const tb = document.getElementById('unit-stats-tbody');
+            if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem">لا توجد بيانات بعد</td></tr>';
+            return;
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+        let totalStudents = 0, activeToday = 0, totalAI = 0;
+        let totalPractice = 0, totalDuration = 0, totalSessions = 0;
+        const unitStats = {};
+
+        snap.forEach(child => {
+            if (!child.key.startsWith(QR_NS)) return;
+            totalStudents++;
+            const d = child.val();
+
+            // نشط اليوم
+            if (d.lastActive && d.lastActive.slice(0, 10) === today) activeToday++;
+
+            // أسئلة AI من aiLogs (البيانات الموجودة سابقاً)
+            if (d.aiLogs) {
+                Object.values(d.aiLogs).forEach(qLog => {
+                    if (qLog && typeof qLog === 'object') totalAI += Object.keys(qLog).length;
+                });
+            }
+
+            // مسائل التدريب من practice.totalSolved
+            totalPractice += (d.practice?.totalSolved || 0);
+
+            // مدة الجلسات من sessions الجديدة
+            if (d.sessions) {
+                Object.values(d.sessions).forEach(s => {
+                    if (s && s.duration > 0) { totalDuration += s.duration; totalSessions++; }
+                });
+            }
+
+            // إحصاءات الوحدات من unitStats الجديدة
+            if (d.unitStats) {
+                Object.entries(d.unitStats).forEach(([u, st]) => {
+                    if (!unitStats[u]) unitStats[u] = { ai: 0, practice: 0, correct: 0 };
+                    unitStats[u].ai       += (st.aiQuestions    || 0);
+                    unitStats[u].practice += (st.practiceAnswers || 0);
+                    unitStats[u].correct  += (st.correctAnswers  || 0);
+                });
+            }
+        });
+
+        const avgMin = totalSessions > 0 ? Math.round(totalDuration / totalSessions / 60) : 0;
+
+        // تحديث البطاقات
+        const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        setVal('ac-students', totalStudents);
+        setVal('ac-active',   activeToday);
+        setVal('ac-ai',       totalAI);
+        setVal('ac-practice', totalPractice);
+        setVal('ac-duration', avgMin > 0 ? avgMin + ' دق' : '—');
+        setVal('ac-sessions', totalSessions);
+
+        // جدول الوحدات
+        const tb = document.getElementById('unit-stats-tbody');
+        if (!tb) return;
+        const rows = Object.entries(unitStats)
+            .sort((a, b) => (b[1].ai + b[1].practice) - (a[1].ai + a[1].practice))
+            .map(([u, s]) => {
+                const acc = s.practice > 0 ? Math.round(s.correct / s.practice * 100) : 0;
+                const accColor = acc >= 70 ? 'var(--green)' : acc >= 50 ? 'var(--purple)' : 'var(--wrong)';
+                const name = UNIT_NAMES[u] || ('وحدة ' + u);
+                return `<tr>
+                    <td><strong>${escapeHTML(name)}</strong></td>
+                    <td style="font-weight:800;color:var(--purple)">${s.ai}</td>
+                    <td style="font-weight:800;color:var(--primary)">${s.practice}</td>
+                    <td style="font-weight:800;color:${accColor}">${s.practice > 0 ? acc + '%' : '—'}</td>
+                </tr>`;
+            }).join('');
+        tb.innerHTML = rows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem">ستظهر الإحصاءات بعد بدء استخدام الطلاب</td></tr>';
+    });
+}
+
+// تصدير بيانات Analytics كـ CSV للبحث الأكاديمي
+function exportAnalyticsCSV() {
+    allRef().once('value').then(snap => {
+        if (!snap.exists()) { alert('لا توجد بيانات'); return; }
+        let csv = '﻿'; // BOM لدعم Excel العربي
+        csv += 'الرقم الشخصي,الشعبة,آخر نشاط,إجمالي أسئلة AI,مسائل التدريب,دقة التدريب,التقييم القبلي,التقييم البعدي,التحسن,الجلسات,متوسط المدة(ث)\n';
+        snap.forEach(child => {
+            if (!child.key.startsWith(QR_NS)) return;
+            const d = child.val(); const qid = child.key.replace(QR_NS, '');
+            let aiTotal = 0;
+            if (d.aiLogs) Object.values(d.aiLogs).forEach(q => { if (q && typeof q === 'object') aiTotal += Object.keys(q).length; });
+            const prac = d.practice || {}; const pracSolved = prac.totalSolved || 0;
+            const pracAcc = pracSolved > 0 ? Math.round((prac.correctAnswers || 0) / pracSolved * 100) + '%' : '—';
+            const pre  = d.preTest?.completed  ? d.preTest.score  + '/10' : '—';
+            const post = d.postTest?.completed ? d.postTest.score + '/10' : '—';
+            const diff = (d.preTest?.completed && d.postTest?.completed) ? (d.postTest.score - d.preTest.score) : '—';
+            let sesCount = 0, sesDur = 0;
+            if (d.sessions) Object.values(d.sessions).forEach(s => { if (s?.duration > 0) { sesCount++; sesDur += s.duration; } });
+            const avgDur = sesCount > 0 ? Math.round(sesDur / sesCount) : 0;
+            csv += `"${qid}","${d.class || ''}","${d.lastActive ? d.lastActive.slice(0,10) : '—'}",${aiTotal},${pracSolved},"${pracAcc}","${pre}","${post}","${diff}",${sesCount},${avgDur}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `wise_analytics_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // TEACHER DASHBOARD
 // ═══════════════════════════════════════════════════════════════
 function switchTab(tabId){
+    const panels=['tab-results','tab-students','tab-analytics'];
     document.querySelectorAll('.dash-tab').forEach((t,i)=>{
-        const panels=['tab-results','tab-students'];
-        t.classList.toggle('active', panels[i]===tabId||t.textContent.includes(tabId==='tab-results'?'نتائج':'إدارة'));
+        t.classList.toggle('active', panels[i]===tabId);
     });
     document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
@@ -2345,6 +2593,7 @@ auth.onAuthStateChanged(async firebaseUser=>{
     if(email.startsWith(QR_NS) && email.endsWith(STUDENT_EMAIL_DOMAIN)){
         const qid = email.slice(QR_NS.length, email.length - STUDENT_EMAIL_DOMAIN.length);
         CURRENT_USER = qid;
+        analyticsStartSession(qid);
         try{
             const snap = await sRef(qid).once('value');
             const section = snap.exists() ? (snap.val().class || '') : '';
@@ -2364,6 +2613,9 @@ auth.onAuthStateChanged(async firebaseUser=>{
     auth.signOut();
     showLogin();
 });
+
+// أنهِ الجلسة عند إغلاق أو تحديث الصفحة
+window.addEventListener('beforeunload', analyticsEndSession);
 </script>
 </body>
 </html>
