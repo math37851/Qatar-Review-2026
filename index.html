@@ -1893,10 +1893,10 @@ function checkAnswer(timeout=false){
         fireConfetti(15);
     } else if(timeout){
         fb.className='feedback-box wrong-msg';
-        fb.innerHTML=`<h3><i class="fa-solid fa-clock"></i> انتهى الوقت!</h3><p>الإجابة الصحيحة: <strong>${correctLetter}) ${q.options?.[letterIdx[correctLetter]]||''}</strong><br><br>${q.explanation}</p>`;
+        fb.innerHTML=`<h3><i class="fa-solid fa-clock"></i> انتهى الوقت!</h3><p>الإجابة الصحيحة: <strong>${correctLetter}) ${formatDims(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${q.explanation}</p>`;
     } else {
         fb.className='feedback-box wrong-msg';
-        fb.innerHTML=`<h3><i class="fa-solid fa-times-circle"></i> إجابة غير صحيحة</h3><p>اخترت: <strong>${STATE.selectedOption||'—'}</strong><br>الإجابة الصحيحة: <strong>${correctLetter}) ${q.options?.[letterIdx[correctLetter]]||''}</strong><br><br>${q.explanation}</p>`;
+        fb.innerHTML=`<h3><i class="fa-solid fa-times-circle"></i> إجابة غير صحيحة</h3><p>اخترت: <strong>${formatDims(STATE.selectedOption||'—')}</strong><br>الإجابة الصحيحة: <strong>${correctLetter}) ${formatDims(q.options?.[letterIdx[correctLetter]]||'')}</strong><br><br>${q.explanation}</p>`;
         if(STATE.mode==='practice'){
             document.getElementById('ai-chat-btn').style.display='block';
         }
@@ -1925,7 +1925,7 @@ function revealSolution(){
 
     const fb=document.getElementById('feedback-box');
     fb.className='feedback-box solution';
-    fb.innerHTML=`<h3><i class="fa-solid fa-lightbulb"></i> الحل النموذجي</h3><p><strong>${q.correctText}</strong><br><br>${q.explanation}</p>`;
+    fb.innerHTML=`<h3><i class="fa-solid fa-lightbulb"></i> الحل النموذجي</h3><p><strong>${formatDims(q.correctText)}</strong><br><br>${q.explanation}</p>`;
 
     const sb=document.getElementById('strategy-box');
     const st=document.getElementById('strategy-text');
