@@ -2029,13 +2029,22 @@ function openAIChat(){
 function renderMarkdownSafe(text){
     let s = escapeHTML(text);
     s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-    // اعزل القياسات اللاتينية (رقم + وحدة مثل "3 cm" أو "20 cm³") كجزيرة LTR.
-    // نتجاهل مقاطع $...$ لأن KaTeX يرسمها لاحقاً ويفرض اتجاهها يساراً→يميناً.
-    s = s.split(/(\$[^$\n]*\$)/).map(seg =>
-        (seg.startsWith('$') && seg.endsWith('$'))
-            ? seg
-            : seg.replace(/(\d+(?:[.,]\d+)?\s*[A-Za-z]+[²³]?)/g, '<span class="ltr-unit">$1</span>')
-    ).join('');
+    // افصل المعادلات $...$ عن باقي النص. لكل معادلة: اضمم وحدتها الملاصقة (إن بدأ المقطع التالي
+    // بوحدة لاتينية) لتبقيا جزيرة LTR واحدة فلا تنفصل الوحدة عن رقمها. باقي المقاطع: اعزل القياسات
+    // النصّية (رقم + وحدة). محتوى المعادلات لا تمسّه قاعدة القياسات (KaTeX يرسمه لاحقاً ويفرض LTR).
+    const parts = s.split(/(\$[^$\n]*\$)/);
+    s = parts.map((seg, i) => {
+        if (/^\$[^$\n]*\$$/.test(seg)) {
+            let unit = '';
+            const next = parts[i + 1];
+            if (typeof next === 'string') {
+                const um = next.match(/^(\s*[A-Za-z]+[²³]?)/);
+                if (um) { unit = um[1]; parts[i + 1] = next.slice(um[1].length); }
+            }
+            return `<span class="ltr-unit">${seg}${unit}</span>`;
+        }
+        return seg.replace(/(\d+(?:[.,]\d+)?\s*[A-Za-z]+[²³]?)/g, '<span class="ltr-unit">$1</span>');
+    }).join('');
     return s.split('\n').map(line => {
         const bullet = line.match(/^\s*[-•]\s+(.*)$/);
         if (bullet) return `<div class="ai-md-bullet">• ${bullet[1]}</div>`;
