@@ -49,6 +49,8 @@
         .ai-message.ai .ai-md-bullet { padding-right: 0.6rem; margin: 0.15rem 0; }
         .ai-message.ai .ai-md-gap { height: 0.5rem; }
         .ai-message.ai strong { font-weight: 700; }
+        /* عزل القياسات اللاتينية (مثل 3 cm) كجزيرة LTR كي لا تنعكس إلى "cm 3" في سياق RTL */
+        .ai-message.ai .ltr-unit { unicode-bidi: isolate; direction: ltr; }
 
         :root {
             --primary:      hsl(343, 73%, 31%);    /* Cohesive Qatar Burgundy #8A1538 */
@@ -2025,6 +2027,13 @@ function openAIChat(){
 function renderMarkdownSafe(text){
     let s = escapeHTML(text);
     s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    // اعزل القياسات اللاتينية (رقم + وحدة مثل "3 cm" أو "20 cm³") كجزيرة LTR.
+    // نتجاهل مقاطع $...$ لأن KaTeX يرسمها لاحقاً ويفرض اتجاهها يساراً→يميناً.
+    s = s.split(/(\$[^$\n]*\$)/).map(seg =>
+        (seg.startsWith('$') && seg.endsWith('$'))
+            ? seg
+            : seg.replace(/(\d+(?:[.,]\d+)?\s*[A-Za-z]+[²³]?)/g, '<span class="ltr-unit">$1</span>')
+    ).join('');
     return s.split('\n').map(line => {
         const bullet = line.match(/^\s*[-•]\s+(.*)$/);
         if (bullet) return `<div class="ai-md-bullet">• ${bullet[1]}</div>`;
