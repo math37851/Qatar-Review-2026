@@ -45,6 +45,11 @@
             text-align: center !important;
         }
 
+        /* تنسيق ردود المساعد بعد عرض الـMarkdown المبسّط */
+        .ai-message.ai .ai-md-bullet { padding-right: 0.6rem; margin: 0.15rem 0; }
+        .ai-message.ai .ai-md-gap { height: 0.5rem; }
+        .ai-message.ai strong { font-weight: 700; }
+
         :root {
             --primary:      hsl(343, 73%, 31%);    /* Cohesive Qatar Burgundy #8A1538 */
             --primary-dark: hsl(343, 80%, 22%);    /* Premium deep burgundy */
@@ -2013,14 +2018,27 @@ function openAIChat(){
     document.getElementById('ai-chat-container').style.display='block';
     const q=AI_STATE.currentQ;
     if(!q) return;
-    appendMsg('ai',`مرحباً! 😊\nلقد اخترت "${escapeHTML(STATE.selectedOption||'؟')}" والإجابة الصحيحة هي "${escapeHTML(q.correct)}".\nما الجزء الذي يحتاج توضيحاً؟`);
+    appendMsg('ai',`مرحباً! 😊\nلقد اخترت "${STATE.selectedOption||'؟'}" والإجابة الصحيحة هي "${q.correct}".\nما الجزء الذي يحتاج توضيحاً؟`);
+}
+
+// عارض Markdown مبسّط وآمن: يهرّب HTML أولاً ثم يطبّق تنسيقاً محدوداً معروفاً (عريض، نقاط، أسطر)
+function renderMarkdownSafe(text){
+    let s = escapeHTML(text);
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    return s.split('\n').map(line => {
+        const bullet = line.match(/^\s*[-•]\s+(.*)$/);
+        if (bullet) return `<div class="ai-md-bullet">• ${bullet[1]}</div>`;
+        if (line.trim() === '') return '<div class="ai-md-gap"></div>';
+        return `<div>${line}</div>`;
+    }).join('');
 }
 
 function appendMsg(role,text){
     const c=document.getElementById('ai-messages');
     const d=document.createElement('div');
     d.className=`ai-message ${role}`;
-    d.textContent=text;
+    if(role==='ai'){ d.innerHTML=renderMarkdownSafe(text); }
+    else { d.textContent=text; }
     c.appendChild(d);
     c.scrollTop=c.scrollHeight;
 }
