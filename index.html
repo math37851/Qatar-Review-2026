@@ -2452,36 +2452,51 @@ function loadResultsData(){
 }
 
 function loadStudentsData(){
-    allRef().on('value',snap=>{
-        const tbody=document.getElementById('students-tbody');
-        tbody.innerHTML='';
-        if(!snap.exists()){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>'; return; }
-        let hasQR=false;
-        snap.forEach(child=>{
-            if(!child.key.startsWith(QR_NS)) return;  // skip Kangaroo students
-            hasQR=true;
-            const d=child.val();
-            const username=child.key.replace(QR_NS,'');  // strip prefix for display
-            const pre=d.preTest?.completed;
-            const post=d.postTest?.completed;
-            tbody.innerHTML+=`
-            <tr>
-                <td><strong>طالب مجهول الهوية</strong><br><small style="color:var(--text-muted)">الرقم الشخصي: ${escapeHTML(username)}</small></td>
-                <td>
-                    ${escapeHTML(d.class||'—')}
-                    ${(!d.class||d.class==='—')?`<button class="action-btn-sm" style="margin-right:.4rem;font-size:.7rem;padding:.2rem .5rem" onclick="fixStudentClass('${escapeHTML(username)}')">✏️ تصحيح</button>`:''}
-                </td>
-                <td>
-                    ${pre?'<span style="color:#1E8449">✓ قبلي</span>':''}
-                    ${post?'<span style="color:#7D3C98"> ✓ بعدي</span>':''}
-                    ${!pre&&!post?'<span style="color:#718096">لم يبدأ</span>':''}
-                </td>
-                <td><button class="action-btn-sm btn-danger" onclick="deleteStudent('${escapeHTML(username)}')">
-                     حذف الطالب 🗑️
-                </button></td>
-            </tr>`;
+    // نقرأ /roster أولاً للحصول على الشعبة الحقيقية (المصدر الأصلي)
+    // ثم نعرض بيانات الطلاب مع الشعبة من roster إن كانت مفقودة في students
+    db.ref('roster').once('value').then(rosterSnap=>{
+        const rosterMap = {};
+        if(rosterSnap.exists()){
+            rosterSnap.forEach(r=>{
+                const qid = r.key.startsWith(QR_NS) ? r.key.slice(QR_NS.length) : r.key;
+                rosterMap[qid] = r.val()?.section || '';
+            });
+        }
+
+        allRef().on('value',snap=>{
+            const tbody=document.getElementById('students-tbody');
+            tbody.innerHTML='';
+            if(!snap.exists()){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>'; return; }
+            let hasQR=false;
+            snap.forEach(child=>{
+                if(!child.key.startsWith(QR_NS)) return;
+                hasQR=true;
+                const d=child.val();
+                const username=child.key.replace(QR_NS,'');
+                // الشعبة: من سجل الطالب أولاً، وإلا من roster مباشرةً
+                const cls = (d.class && d.class!=='—') ? d.class : (rosterMap[username] || '—');
+                // إن كانت الشعبة مستعادة من roster ولكن غير محفوظة في students → نصحّحها تلقائياً
+                if((!d.class || d.class==='—') && rosterMap[username]){
+                    sRef(username).child('class').set(rosterMap[username]).catch(()=>{});
+                }
+                const pre=d.preTest?.completed;
+                const post=d.postTest?.completed;
+                tbody.innerHTML+=`
+                <tr>
+                    <td><strong>طالب مجهول الهوية</strong><br><small style="color:var(--text-muted)">الرقم الشخصي: ${escapeHTML(username)}</small></td>
+                    <td>${escapeHTML(cls)}</td>
+                    <td>
+                        ${pre?'<span style="color:#1E8449">✓ قبلي</span>':''}
+                        ${post?'<span style="color:#7D3C98"> ✓ بعدي</span>':''}
+                        ${!pre&&!post?'<span style="color:#718096">لم يبدأ</span>':''}
+                    </td>
+                    <td><button class="action-btn-sm btn-danger" onclick="deleteStudent('${escapeHTML(username)}')">
+                         حذف الطالب 🗑️
+                    </button></td>
+                </tr>`;
+            });
+            if(!hasQR) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>';
         });
-        if(!hasQR) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:1.5rem">لا يوجد طلاب</td></tr>';
     });
 }
 
