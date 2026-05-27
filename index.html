@@ -51,6 +51,8 @@
         .ai-message.ai strong { font-weight: 700; }
         /* عزل القياسات اللاتينية (مثل 3 cm) كجزيرة LTR كي لا تنعكس إلى "cm 3" في سياق RTL */
         .ai-message.ai .ltr-unit { unicode-bidi: isolate; direction: ltr; }
+        /* سطر رياضي خالص (بلا أحرف عربية): اجعله LTR كاملاً كي تبقى المعادلة ووحدتها معاً */
+        .ai-message.ai .ltr-line { direction: ltr; text-align: right; }
 
         :root {
             --primary:      hsl(343, 73%, 31%);    /* Cohesive Qatar Burgundy #8A1538 */
@@ -2038,7 +2040,9 @@ function renderMarkdownSafe(text){
         const bullet = line.match(/^\s*[-•]\s+(.*)$/);
         if (bullet) return `<div class="ai-md-bullet">• ${bullet[1]}</div>`;
         if (line.trim() === '') return '<div class="ai-md-gap"></div>';
-        return `<div>${line}</div>`;
+        // سطر بلا أحرف عربية = معادلة/تعبير رياضي خالص → اعرضه LTR كي تبقى الوحدة ملاصقة للرقم
+        const cls = /[؀-ۿ]/.test(line) ? '' : ' class="ltr-line"';
+        return `<div${cls}>${line}</div>`;
     }).join('');
 }
 
