@@ -50,7 +50,7 @@
         .ai-message.ai .ai-md-gap { height: 0.5rem; }
         .ai-message.ai strong { font-weight: 700; }
         /* عزل القياسات اللاتينية (مثل 3 cm) كجزيرة LTR كي لا تنعكس إلى "cm 3" في سياق RTL */
-        .ai-message.ai .ltr-unit { unicode-bidi: isolate; direction: ltr; }
+        .ltr-unit { unicode-bidi: isolate; direction: ltr; }
         /* سطر رياضي خالص (بلا أحرف عربية): اجعله LTR كاملاً كي تبقى المعادلة ووحدتها معاً */
         .ai-message.ai .ltr-line { direction: ltr; text-align: right; }
 
@@ -1348,9 +1348,9 @@
         <div style="display:flex; gap:1.5rem; margin-top:1.5rem; flex-wrap:wrap;">
             
             <!-- Left Column: Slide Image -->
-            <div id="q-slide-container" style="flex:1.1; min-width:320px; display:none;">
-                <div class="q-card" style="display:flex; align-items:center; justify-content:center; padding:1rem; min-height:350px; height:100%;">
-                    <img id="q-slide-img" src="" alt="شريحة السؤال" style="max-width:100%; max-height:450px; border-radius:0.75rem; object-fit:contain; cursor:zoom-in; box-shadow:var(--shadow);">
+            <div id="q-slide-container" style="flex:1.6; min-width:360px; display:none;">
+                <div class="q-card" style="display:flex; align-items:center; justify-content:center; padding:0.5rem; min-height:440px; height:100%;">
+                    <img id="q-slide-img" src="" alt="شريحة السؤال" style="width:100%; max-height:640px; border-radius:0.75rem; object-fit:contain; cursor:zoom-in; box-shadow:var(--shadow);">
                 </div>
             </div>
             
@@ -1484,6 +1484,9 @@ let CURRENT_USER = null;
 // HELPERS
 // ═══════════════════════════════════════════════════════════════
 function escapeHTML(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// يضيف مسافة بين الرقم ووحدته ويعزلها LTR كي تظهر "13 cm" لا "cm 13" (لنصوص الأسئلة والخيارات في سياق RTL).
+// قائمة وحدات محددة حتى لا تُلمس المتغيرات مثل b أو الكلمات.
+function formatDims(html){ return String(html??'').replace(/(\d+(?:[.,]\d+)?)\s*(cm³|cm²|cm|mm|km|m³|m²|kg|mL|L|m|g|s)(?![A-Za-z])/g, '<span class="ltr-unit">$1 $2</span>'); }
 async function sha256(str){ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
 
 function showView(id){
@@ -1779,7 +1782,7 @@ function loadQuestion(){
     document.getElementById('q-progress-fill').style.width=((STATE.qIndex/STATE.questions.length)*100)+'%';
 
     // Question text
-    document.getElementById('q-text').innerHTML=q.question;
+    document.getElementById('q-text').innerHTML=formatDims(q.question);
 
     // Slide Image
     const slideCont = document.getElementById('q-slide-container');
@@ -1801,7 +1804,7 @@ function loadQuestion(){
     if(isMCQ && q.options?.length){
         ['A','B','C','D'].forEach((l,i)=>{
             const btn=document.getElementById('opt-'+l);
-            btn.innerHTML=q.options[i]||l;
+            btn.innerHTML=formatDims(q.options[i]||l);
             btn.classList.remove('selected','correct','wrong');
             btn.disabled=false;
         });
